@@ -1,9 +1,9 @@
 Package: highfrequency
-Version: 0.1
+Version: 0.2
 Date: 2011-04-04
 Title: highfrequency
 Author: Jonathan Cornelissen, Kris Boudt, Scott Payseur
-Maintainer: Jonathan Cornelissen <Jonathan.cornelissen@kuleuven.be>
+Maintainer: Jonathan Cornelissen <Jonathan.Cornelissen@kuleuven.be>
 Description: The highfrequency package contains an extensive toolkit
         for the use of highfrequency financial data in R. It contains
         functionality to manage, clean and match highfrequency trades
@@ -13,9 +13,9 @@ Description: The highfrequency package contains an extensive toolkit
         periodicity.
 License: GPL (>= 2)
 Depends: R (>= 2.12.0), xts, zoo
-Suggests: realized, robustbase, cubature, mvtnorm, chron, timeDate,
-        quantmod
+Suggests: timeDate, robustbase, cubature, mvtnorm, chron, quantmod
 LazyLoad: yes
-Packaged: 2012-12-26 12:35:21 UTC; jonathancornelissen
+Packaged: 2013-04-09 08:59:54 UTC; jonathancornelissen
+NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2012-12-26 15:29:22
+Date/Publication: 2013-04-09 18:26:10
