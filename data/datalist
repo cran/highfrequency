@@ -5,6 +5,7 @@ sample_5minprices_jumps
 sample_qdata
 sample_qdataraw
 sample_real5minprices
+sample_returns_5min
 sample_tdata
 sample_tdataraw
 sbux.xts
