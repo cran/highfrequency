@@ -355,10 +355,9 @@ JOjumptest= function(pdata, power=4,...)
   }     
 }  
 
-
 ####AJjumptest:Ait- Sahalia and Jacod tests for the presence of jumps in the price series.####
 
-AJjumptest = function(pdata, p=4 , k=2, align.by= NULL, align.period = NULL, makeReturns= FALSE, ...)
+AJjumptest = function(pdata, p=4 , k=2, align.by= NULL, align.period = NULL,alpha_multiplier=4, makeReturns= FALSE, ...)
 {
   if (hasArg(data)) {  pdata = data  }
   
@@ -376,7 +375,7 @@ AJjumptest = function(pdata, p=4 , k=2, align.by= NULL, align.period = NULL, mak
   p = as.numeric(p);
   k = as.numeric(k);
   
-  alpha = (1-1/p)/2;
+  alpha = alpha_multiplier * sqrt(rCov(pdata, align.by = align.by, align.period = align.period, makeReturns = makeReturns))
   w = 0.47;
   cvalue = alpha*(1/N)^w;
   
@@ -397,7 +396,7 @@ AJjumptest = function(pdata, p=4 , k=2, align.by= NULL, align.period = NULL, mak
   pv1 = sum(r1^p);
   pv2 = sum(r2^p);
   
-  S = pv1/pv2
+  S = pv1/pv2;
   
   ## selection return:
   selection <- abs(r) < cvalue
@@ -902,19 +901,21 @@ rBeta = function(rdata, rindex, RCOVestimator= "rCov", RVestimator= "RV", makeRe
 .Npk = function(p,k){
   mup= 2^(p/2)*gamma(1/2*(p+1))/gamma(1/2)
   mu2p= 2^((2*p)/2)*gamma(1/2*((2*p)+1))/gamma(1/2)      
-  npk= (1/mup^2)*(k^(p-2)*(1+k))*mu2p + k^(p-2)*(k-1)*mup^2-2*k^(p/2-1)*.fmupk(p,k)
+  #npk= (1/mup^2)*(k^(p-2)*(1+k))*mu2p + k^(p-2)*(k-1)*mup^2-2*k^(p/2-1)*.fmupk(p,k)
+  npk= (1/mup^2)*(k^(p-2)*(1+k)*mu2p + k^(p-2)*(k-1)*mup^2-2*k^(p/2-1)*.fmupk(p,k))
   return(npk)
 }
 
+
 .V = function(rse,p,k,N){
   mup = 2^(p/2)*gamma(1/2*(p+1))/gamma(1/2)
-  muhalfp = 2^(p/4)*gamma(1/2*(p/2+1))/gamma(1/2)
-  A2p = (1/N)^(1-p/2)/mup*sum(rse^p)
-  Ap = (1/N)^(1-p/4)/muhalfp*sum(rse^(p/2))   ##check formula  
+  mu2p = 2^(p)*gamma(1/2*(2*p+1))/gamma(1/2)
+  Ap = (1/N)^(1-p/2)/mup*sum(rse^p)
+  A2p = (1/N)^(1-p)/mu2p*sum(rse^(2*p))   
   
-  V = .Npk(p,k) *A2p/(N*Ap) ##check formula: A(p), A(2p)
+  V = .Npk(p,k) *A2p/(N*Ap^2) 
   return(V)
-} 
+}
 
 ## BNSJumptest help functions:
 
@@ -1429,7 +1430,7 @@ rBeta = function(rdata, rindex, RCOVestimator= "rCov", RVestimator= "RV", makeRe
 
 .SEheavyModel = function( paramsvector, data, p, q, backcast, LB, UB, compconst=FALSE, ...)
 {
-  require(numDeriv)
+ 
   K    = ncol(data);  #Number of series to model
   
   # Set lower and upper-bound if not specified:
@@ -1539,7 +1540,7 @@ rBeta = function(rdata, rindex, RCOVestimator= "rCov", RVestimator= "RV", makeRe
       
     }
     
-    require(sandwich);
+    
     fm = lm(m ~ 0); 
     It = try(sandwich::vcovHAC(fm))
     
@@ -1556,7 +1557,6 @@ rBeta = function(rdata, rindex, RCOVestimator= "rCov", RVestimator= "RV", makeRe
   
   invJ = try(solve(Jt))
   if( class(invJ) == "try-error"){
-    require("MASS")
     print("-1*Hessian is not invertible - generalized inverse is used")
     invJ = MASS::ginv(Jt)
   }
