@@ -1,3 +1,4 @@
+
 # This file contains all realized measures previously implemented in RTAQ and realized
 ######################################################## 
 ## Help functions: (not exported)
@@ -6,7 +7,8 @@
 { 
     if(is.null(y)){
         test = is.xts(x) && (ndays(x)!=1);
-        return(test);}
+        return(test);
+    }
     if(!is.null(y)){
         test = (is.xts(x) && (ndays(x)!=1)) || ( ndays(y)!=1 && is.xts(y) );
         if( test ){
@@ -2035,10 +2037,10 @@ readdata = function(path=NULL, extension="txt",header=FALSE,dims=0){
   #load txt
   if(extension == "txt"){
     fullpath = paste(path,".txt",sep="");
-    data = try(read.delim(fullpath,sep="",header=header,dec=",",col.names=colnames),silent=TRUE);
+    data = try(read.delim(fullpath,sep="",header=header,dec=",",col.names=colnames,colClasses = "character"),silent=TRUE);
     
     if(is.null(dim(data))){
-      data = try(read.delim(fullpath,sep="",header=header,dec=",",col.names=c(colnames,"EXTRA")),silent=TRUE);
+      data = try(read.delim(fullpath,sep="",header=header,dec=",",col.names=c(colnames,"EXTRA"),colClasses = "character"),silent=TRUE);
       if(is.null(dim(data))){data=matrix(nrow=0,ncol=9);
       }else{data=data[,(-dim(data)[2])]}
     }
@@ -2046,10 +2048,10 @@ readdata = function(path=NULL, extension="txt",header=FALSE,dims=0){
   
   if(extension == "csv"){
     fullpath = paste(path,".csv",sep="");
-    data = try(read.delim(fullpath,sep=",",header=header,dec=".",col.names=colnames),silent=TRUE);
+    data = try(read.delim(fullpath,sep=",",header=header,dec=".",col.names=colnames,colClasses = "character"),silent=TRUE);
     
     if(is.null(dim(data))){
-      data = try(read.delim(fullpath,sep=",",header=header,dec=".",col.names=c(colnames,"EXTRA")),silent=TRUE);
+      data = try(read.delim(fullpath,sep=",",header=header,dec=".",col.names=c(colnames,"EXTRA"),colClasses = "character"),silent=TRUE);
       if(is.null(dim(data))){data=matrix(nrow=0,ncol=9);
       }else{data=data[,(-dim(data)[2])]}
     }
@@ -2061,10 +2063,11 @@ readdata = function(path=NULL, extension="txt",header=FALSE,dims=0){
 convert_trades = function (datasource, datadestination, ticker, extension = "txt", 
                            header = FALSE, tradecolnames = NULL, format = "%Y%M%D %H:%M:%S") 
 {  
-  missingt=matrix(ncol=2,nrow=0);
+  missingt=matrix(ncol=2,nrow=0)
   
-  suppressWarnings(dir.create(datadestination));
-  suppressWarnings(dir.create(datasource));
+  dir.create(datadestination, showWarnings = FALSE)
+  dir.create(datasource, showWarnings = FALSE)
+  cur.dir <- getwd()
   
   setwd(datasource)
   adjtime = function(z) {
@@ -2079,7 +2082,7 @@ convert_trades = function (datasource, datadestination, ticker, extension = "txt
     tfile_name = paste(datasource, "/", ticker[i], "_trades", 
                        sep = "")
     tdata = try(readdata(path = tfile_name, extension = extension, 
-                                header = header, dims = 9), silent = TRUE)
+                                header = header, dims = length(tradecolnames)), silent = TRUE)
     
     error = dim(tdata)[1] == 0
     if (error) {
@@ -2115,6 +2118,7 @@ convert_trades = function (datasource, datadestination, ticker, extension = "txt
     setwd(datadestination)
     save(tdata, file = xts_name)
   }
+  setwd(cur.dir)
 }
 
 
@@ -2123,9 +2127,9 @@ convert_quotes = function (datasource, datadestination, ticker, extension = "txt
 {
   missingq=matrix(ncol=2,nrow=0);
   
-  suppressWarnings(dir.create(datadestination));
-  suppressWarnings(dir.create(datasource));
-  
+  dir.create(datadestination, showWarnings = FALSE)
+  dir.create(datasource, showWarnings = FALSE)
+  cur.dir <- getwd()
   setwd(datasource)
   adjtime = function(z) {
     zz = unlist(strsplit(z, ":"))
@@ -2139,7 +2143,7 @@ convert_quotes = function (datasource, datadestination, ticker, extension = "txt
     qfile_name = paste(datasource, "/", ticker[i], "_quotes", 
                        sep = "")
     qdata = try(readdata(path = qfile_name, extension = extension, 
-                         header = header, dims = 9), silent = TRUE)
+                         header = header, dims = length(quotecolnames)), silent = FALSE)
     error = dim(qdata)[1] == 0
     if (error) {
       print(paste("no quotes for stock", ticker[i]))
@@ -2169,6 +2173,7 @@ convert_quotes = function (datasource, datadestination, ticker, extension = "txt
     setwd(datadestination)
     save(qdata, file = xts_name)
   }
+  setwd(cur.dir)
 }
 
 # NEW CODE GSoC 2012 #
@@ -2236,10 +2241,10 @@ convert = function(from, to, datasource, datadestination, trades = TRUE,
     
     # Create trading dates:
     dates = timeDate::timeSequence(from, to, format = "%Y-%m-%d", FinCenter = "GMT")
-    dates = dates[timeDate::isBizday(dates, holidays = timeDate::holidayNYSE(1950:2030))];
+    dates = dates[timeDate::isBizday(dates, holidays = timeDate::holidayNYSE(1960:2050))];
     
     # Create folder structure for saving:
-    if (dir) { dir.create(datadestination); for (i in 1:length(dates)) {dirname = paste(datadestination, "/", as.character(dates[i]), sep = ""); dir.create(dirname)    } }
+    if (dir) { dir.create(datadestination, showWarnings = FALSE); for (i in 1:length(dates)) {dirname = paste(datadestination, "/", as.character(dates[i]), sep = ""); dir.create(dirname, showWarnings = FALSE)    } }
     for (i in 1:length(dates)){ #Loop over days  
       #Get the day-specific path
       datasourcex = paste(datasource, "/", dates[i], sep = "")
@@ -2292,7 +2297,7 @@ convert = function(from, to, datasource, datadestination, trades = TRUE,
     dates = unique(as.Date(index(alldata)));
     
     # Create folder structure for saving : 
-    suppressWarnings( if (dir){ dir.create(datadestination); for (i in 1:length(dates)) {dirname = paste(datadestination, "/", as.character(dates[i]), sep = ""); dir.create(dirname) } })
+    suppressWarnings( if (dir){ dir.create(datadestination, showWarnings = FALSE); for (i in 1:length(dates)) {dirname = paste(datadestination, "/", as.character(dates[i]), sep = ""); dir.create(dirname, showWarnings = FALSE) } })
     
     for(i in 1:length(dates) ){ # Loop over days
       datadestinationx = paste(datadestination, "/", dates[i], sep = ""); 
@@ -2341,7 +2346,7 @@ uniTAQload = function(ticker,from,to,trades=TRUE,quotes=FALSE,datasource=NULL,va
   #From&to (both included) should be in the format "%Y-%m-%d" e.g."2008-11-30"
  
   dates = timeDate::timeSequence(as.character(from),as.character(to), format = "%Y-%m-%d", FinCenter = "GMT")
-  dates = dates[timeDate::isBizday(dates, holidays = timeDate::holidayNYSE(1960:2040))];
+  dates = dates[timeDate::isBizday(dates, holidays = timeDate::holidayNYSE(1960:2050))];
   
   if(trades){ tdata=NULL;
               totaldata=NULL;
@@ -2634,7 +2639,7 @@ center = function()
  ###### Liquidity functions formerly in in RTAQ  ######
 .check_data = function(data){ 
   # FUNCTION sets column names according to RTAQ format using quantmod conventions, such that all the other functions find the correct information.
-  requireNamespace('quantmod');
+#  requireNamespace('quantmod');
   # First step: assign the xts attributes:
   data = set.AllColumns(data);
   
@@ -3100,12 +3105,12 @@ p_return_abs <- function (data)
 
 
 tradesCleanup = function(from,to,datasource,datadestination,ticker,exchanges,tdataraw=NULL,report=TRUE,selection="median",...){
-  requireNamespace('timeDate')
+  #requireNamespace('timeDate')
   nresult = rep(0, 5)
   if(!is.list(exchanges)){ exchanges = as.list(exchanges)}
   if (is.null(tdataraw)) {
-    dates = timeDate::timeSequence(from, to, format = "%Y-%m-d")
-    dates = dates[timeDate::isBizday(dates, holidays=timeDate::holidayNYSE(1960:2040))]
+    dates = timeDate::timeSequence(from, to, format = "%Y-%m-%d")
+    dates = dates[timeDate::isBizday(dates, holidays=timeDate::holidayNYSE(1960:2050))]
     for (j in 1:length(dates)) {
       datasourcex = paste(datasource, "/", dates[j], sep = "")
       datadestinationx = paste(datadestination, "/", dates[j], sep = "")
@@ -3221,7 +3226,7 @@ quotesCleanup = function(from,to,datasource,datadestination,ticker,exchanges, qd
   nresult = rep(0,7);
   if(is.null(qdataraw)){
     dates = timeDate::timeSequence(from,to, format = "%Y-%m-%d", FinCenter = "GMT");
-    dates = dates[timeDate::isBizday(dates, holidays = timeDate::holidayNYSE(2004:2010))];
+    dates = dates[timeDate::isBizday(dates, holidays = timeDate::holidayNYSE(1960:2050))];
     
     for(j in 1:length(dates)){
       datasourcex = paste(datasource,"/",dates[j],sep="");
@@ -3294,7 +3299,7 @@ quotesCleanup = function(from,to,datasource,datadestination,ticker,exchanges, qd
 tradesCleanupFinal = function(from,to,datasource,datadestination,ticker,tdata=NULL,qdata=NULL,...){
   if(is.null(tdata)&is.null(qdata)){
     dates = timeDate::timeSequence(from,to, format = "%Y-%m-%d", FinCenter = "GMT");
-    dates = dates[timeDate::isBizday(dates, holidays = timeDate::holidayNYSE(2004:2010))];
+    dates = dates[timeDate::isBizday(dates, holidays = timeDate::holidayNYSE(1960:2050))];
     
     for(j in 1:length(dates)){
       datasourcex = paste(datasource,"/",dates[j],sep="");
@@ -3454,9 +3459,11 @@ autoSelectExchangeTrades = function(tdata){
 # Zivot
 salesCondition <- function (tdata)
 {
+  trim <- function (x) gsub("^\\s+|\\s+$", "", x)
+  
   tdatacheck(tdata);
-  filteredts = tdata[tdata$COND == "0" | tdata$COND == "E" |
-    tdata$COND == "F" | tdata$COND == "" | tdata$COND == "@F"]
+  filteredts = tdata[trim(tdata$COND) == "0" | trim(tdata$COND) == "E" |
+    trim(tdata$COND) == "F" | trim(tdata$COND) == "" | trim(tdata$COND) == "@F"]
   return(filteredts)
 }
 
@@ -3690,14 +3697,20 @@ rmOutliers = function (qdata, maxi = 10, window = 50, type = "advanced")
       return(value)
     }
     n = length(midquote)
-    allmatrix = matrix(rep(0, 4 * n), ncol = 4)
-    median2 = function(a) {
+    allmatrix = matrix(rep(0, 4 * (n)), ncol = 4)
+    median2 = function(a){ 
       median(a)
     }
-    standardmed = as.numeric(rollapply(midquote, width = (window), 
+    standardmed = as.numeric(rollapply(midquote, width = c(window), 
                                        FUN = median2, align = "center"))
-    allmatrix[(halfwindow + 1):(n - halfwindow), 1] = as.numeric(rollapply(midquote, 
-                                                                           width = (window + 1), FUN = medianw, align = "center"))
+    standardmed = standardmed[!is.na(standardmed)] 
+     
+    temp <- as.numeric(rollapply(midquote, 
+                                 width = (window + 1), 
+                                 FUN = medianw, 
+                                 align = "center"))
+      
+    allmatrix[(halfwindow + 1):(n - halfwindow), 1] = temp[!is.na(temp)]
     allmatrix[(1:(n - window)), 2] = standardmed[2:length(standardmed)]
     allmatrix[(window + 1):(n), 3] = standardmed[1:(length(standardmed) - 
       1)]
