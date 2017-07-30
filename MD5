@@ -1,12 +1,12 @@
-d2557b4fdab47209d1daf7e504372349 *DESCRIPTION
+3bf8531ec810aaed7b2a0410cc8da87a *DESCRIPTION
 97fa51b41b4edf4d24b27d8a207805e4 *NAMESPACE
 95b3af5b66255d3a9fd87074c6cab4a2 *R/AJjumptest.R
 14da855a8dd013b1b8e33622eeb70c54 *R/BNSjumptest.R
 ed7b84073531cb4586b3a31a553c76be *R/JOjumptest.R
 81cabae0f8df2fe615e91cb04bcd8d76 *R/heavyModelC.R
-c7a76cb4c16864f31f064d7be044a04d *R/highfrequencyGSOC.R
+37518865292e20a1be6c3c0c3ef57541 *R/highfrequencyGSOC.R
 d6f3b771190468d0194d89adf61d73c9 *R/quantmod_patch.R
-0121fd2c227146c79964c3e2a2623edf *R/realized.R
+6d2f178898c049bad6116331fb2514f4 *R/realized.R
 5b375960aa888c242d3850a434be12ba *R/spotvol.r
 61a51403494e5de39a514c8661774fd7 *data/lltc.xts.rda
 0d752df928a6b4e8070374ea105aaa8a *data/realized_library.rda
@@ -19,7 +19,7 @@ bd3405f5494cbf06e86fd8bfe6766a45 *data/sample_qdataraw.rda
 59b97f0acbb6c9e38f70ffea3e17c9f9 *data/sample_tdata.rda
 563badb235e31151e4bc7b70b1830c7e *data/sample_tdataraw.rda
 b065ac129d176fb741f8952a3575c353 *data/sbux.xts.rda
-7439a57d2273312143ab75f3fe473f97 *inst/doc/highfrequency.pdf
+a6e1b08074357796bfcbba2b18f1e803 *inst/doc/highfrequency.pdf
 f4cb905e35670197f5105c5dc4bcb3f0 *man/AJjumptest.Rd
 b043ecfa154a26095136daf9543f961c *man/BNSjumptest.Rd
 0fd80779ad9f4f9a0bb3dfc00485e91d *man/ExchangeHoursOnly.Rd
@@ -41,7 +41,7 @@ f4c7f82f980ff4029d630ac15a16559c *man/TAQload.Rd
 4c716e63ebc3aaa416c89c3e9640fe14 *man/convert.Rd
 b58333bb3d80a25af6d8f37a43806701 *man/getPrice.Rd
 70091ff5f3f71bcd57bb8329a4a2e5d1 *man/getTradeDirection.Rd
-0db6600f6ea9f7694443d66eedd8db0a *man/harModel.Rd
+d3f6dfcff2c3423be6ec8782ba5221d1 *man/harModel.Rd
 f79f691a28b62fa9dcb47a25b3348d81 *man/has.Qty.Rd
 46f59f4ec633d71a4de0180cef906d5c *man/heavyModel.Rd
 2359c213046b270ddb64cde85100d977 *man/heavyModelC.Rd

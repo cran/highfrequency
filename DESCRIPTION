@@ -1,6 +1,6 @@
 Package: highfrequency
-Version: 0.5.1
-Date: 2017-05-12
+Version: 0.5.2
+Date: 2017-07-30
 Title: Tools for Highfrequency Data Analysis
 Authors@R: c(person("Kris", "Boudt", role = c("aut", "cre"),
                      email = "Kris.Boudt@econ.kuleuven.be"),
@@ -23,6 +23,6 @@ Imports: graphics, methods, stats, utils, grDevices, numDeriv,
         sandwich, robustbase, cubature, mvtnorm, chron, timeDate, MASS,
         FKF, BMS, rugarch
 NeedsCompilation: yes
-Packaged: 2017-05-12 14:59:45 UTC; scottpayseur
+Packaged: 2017-07-30 18:25:13 UTC; scottpayseur
 Repository: CRAN
-Date/Publication: 2017-05-12 22:46:10 UTC
+Date/Publication: 2017-07-30 22:52:35 UTC
