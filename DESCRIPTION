@@ -1,6 +1,6 @@
 Package: highfrequency
-Version: 0.5.2
-Date: 2017-07-30
+Version: 0.5.3
+Date: 2018-03-03
 Title: Tools for Highfrequency Data Analysis
 Authors@R: c(person("Kris", "Boudt", role = c("aut", "cre"),
                      email = "Kris.Boudt@econ.kuleuven.be"),
@@ -9,20 +9,23 @@ Authors@R: c(person("Kris", "Boudt", role = c("aut", "cre"),
                     email = "Scott.Payseur@gmail.com"),
              person("Giang", "Nguyen", role = c("ctb")),
              person("Maarten", "Schermer", role = c("ctb")))
-Author: Kris Boudt [aut, cre], Jonathan Cornelissen [aut], Scott Payseur [aut],
-    Giang Nguyen [ctb], Maarten Schermer [ctb]
+Author: Kris Boudt [aut, cre],
+  Jonathan Cornelissen [aut],
+  Scott Payseur [aut],
+  Giang Nguyen [ctb],
+  Maarten Schermer [ctb]
 Maintainer: Kris Boudt
  <Kris.Boudt@econ.kuleuven.be>
 Description: Provide functionality to manage, clean and match highfrequency
     trades and quotes data, calculate various liquidity measures, estimate and
-    forecast volatility, and investigate microstructure noise and intraday
+    forecast volatility, detect price jumps and investigate microstructure noise and intraday
     periodicity.
 License: GPL (>= 2)
 Depends: R (>= 2.12.0), xts, zoo
 Imports: graphics, methods, stats, utils, grDevices, numDeriv,
         sandwich, robustbase, cubature, mvtnorm, chron, timeDate, MASS,
-        FKF, BMS, rugarch
+Suggests: FKF, BMS, rugarch
 NeedsCompilation: yes
-Packaged: 2017-07-30 18:25:13 UTC; scottpayseur
+Packaged: 2018-03-02 23:50:28 UTC; gebruiker
 Repository: CRAN
-Date/Publication: 2017-07-30 22:52:35 UTC
+Date/Publication: 2018-03-03 08:00:31 UTC
