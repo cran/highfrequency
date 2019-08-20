@@ -1,6 +1,6 @@
 Package: highfrequency
-Version: 0.5.3
-Date: 2018-03-03
+Version: 0.6.0
+Date: 2019-08-19
 Title: Tools for Highfrequency Data Analysis
 Authors@R: c(person("Kris", "Boudt", role = c("aut", "cre"),
                      email = "Kris.Boudt@econ.kuleuven.be"),
@@ -8,12 +8,7 @@ Authors@R: c(person("Kris", "Boudt", role = c("aut", "cre"),
              person("Scott", "Payseur", role = c("aut"),
                     email = "Scott.Payseur@gmail.com"),
              person("Giang", "Nguyen", role = c("ctb")),
-             person("Maarten", "Schermer", role = c("ctb")))
-Author: Kris Boudt [aut, cre],
-  Jonathan Cornelissen [aut],
-  Scott Payseur [aut],
-  Giang Nguyen [ctb],
-  Maarten Schermer [ctb]
+             person("Onno", "Kleen", role = c("ctb"), comment = c(ORCID = "0000-0003-4731-4640")))
 Maintainer: Kris Boudt
  <Kris.Boudt@econ.kuleuven.be>
 Description: Provide functionality to manage, clean and match highfrequency
@@ -21,11 +16,23 @@ Description: Provide functionality to manage, clean and match highfrequency
     forecast volatility, detect price jumps and investigate microstructure noise and intraday
     periodicity.
 License: GPL (>= 2)
-Depends: R (>= 2.12.0), xts, zoo
-Imports: graphics, methods, stats, utils, grDevices, numDeriv,
-        sandwich, robustbase, cubature, mvtnorm, chron, timeDate, MASS,
-Suggests: FKF, BMS, rugarch
+Encoding: UTF-8
+LazyData: true
+Depends: R (>= 3.5.0)
+Imports: xts, zoo, Rcpp, RcppArmadillo, graphics, methods, stats,
+        utils, grDevices, numDeriv, sandwich, robustbase, cubature,
+        mvtnorm, chron, timeDate, MASS, data.table (>= 1.12.0),
+        RcppRoll, bit64, lubridate, readr
+LinkingTo: Rcpp, RcppArmadillo
+Suggests: covr, FKF, BMS, rugarch, testthat, knitr, rmarkdown
+RoxygenNote: 6.1.1
+VignetteBuilder: knitr
 NeedsCompilation: yes
-Packaged: 2018-03-02 23:50:28 UTC; gebruiker
+Packaged: 2019-08-19 21:02:32 UTC; Arbeit
+Author: Kris Boudt [aut, cre],
+  Jonathan Cornelissen [aut],
+  Scott Payseur [aut],
+  Giang Nguyen [ctb],
+  Onno Kleen [ctb] (<https://orcid.org/0000-0003-4731-4640>)
 Repository: CRAN
-Date/Publication: 2018-03-03 08:00:31 UTC
+Date/Publication: 2019-08-20 12:10:06 UTC
