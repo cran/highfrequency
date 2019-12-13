@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
@@ -404,30 +403,18 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">tqdata_cleaned &lt;-<span class="st"> </span><span class="kw">tradesCleanupUsingQuotes</span>(<span class="dt">tdata =</span> tdata_cleaned<span class="op">$</span>tdata[<span class="kw">as.Date</span>(DT) <span class="op">==</span><span class="st"> &quot;2018-01-02&quot;</span>], </a>
 <a class="sourceLine" id="cb7-2" data-line-number="2">                                           <span class="dt">qdata =</span> qdata_cleaned<span class="op">$</span>qdata[<span class="kw">as.Date</span>(DT) <span class="op">==</span><span class="st"> &quot;2018-01-02&quot;</span>])</a>
 <a class="sourceLine" id="cb7-3" data-line-number="3">tqdata_cleaned</a>
-<a class="sourceLine" id="cb7-4" data-line-number="4"><span class="co">#&gt;                        DT SYMBOL    BID    OFR BIDSIZ OFRSIZ MIDQUOTE</span></a>
-<a class="sourceLine" id="cb7-5" data-line-number="5"><span class="co">#&gt;    1: 2018-01-02 09:30:34    XXX 158.46 158.58      1      1  158.520</span></a>
-<a class="sourceLine" id="cb7-6" data-line-number="6"><span class="co">#&gt;    2: 2018-01-02 09:30:37    XXX 158.46 158.58      3      1  158.520</span></a>
-<a class="sourceLine" id="cb7-7" data-line-number="7"><span class="co">#&gt;    3: 2018-01-02 09:30:40    XXX 158.49 158.62      5      1  158.555</span></a>
-<a class="sourceLine" id="cb7-8" data-line-number="8"><span class="co">#&gt;    4: 2018-01-02 09:30:49    XXX 158.48 158.55      4      1  158.515</span></a>
-<a class="sourceLine" id="cb7-9" data-line-number="9"><span class="co">#&gt;    5: 2018-01-02 09:30:51    XXX 158.48 158.55      4      1  158.515</span></a>
-<a class="sourceLine" id="cb7-10" data-line-number="10"><span class="co">#&gt;   ---                                                                </span></a>
-<a class="sourceLine" id="cb7-11" data-line-number="11"><span class="co">#&gt; 1435: 2018-01-02 15:59:56    XXX 157.04 157.08      1      4  157.060</span></a>
-<a class="sourceLine" id="cb7-12" data-line-number="12"><span class="co">#&gt; 1436: 2018-01-02 15:59:57    XXX 157.04 157.06      5     10  157.050</span></a>
-<a class="sourceLine" id="cb7-13" data-line-number="13"><span class="co">#&gt; 1437: 2018-01-02 15:59:57    XXX 157.04 157.06      5     10  157.050</span></a>
-<a class="sourceLine" id="cb7-14" data-line-number="14"><span class="co">#&gt; 1438: 2018-01-02 15:59:59    XXX 157.04 157.06      8     25  157.050</span></a>
-<a class="sourceLine" id="cb7-15" data-line-number="15"><span class="co">#&gt; 1439: 2018-01-02 15:59:59    XXX 157.04 157.06      1      3  157.050</span></a>
-<a class="sourceLine" id="cb7-16" data-line-number="16"><span class="co">#&gt;         PRICE</span></a>
-<a class="sourceLine" id="cb7-17" data-line-number="17"><span class="co">#&gt;    1: 158.525</span></a>
-<a class="sourceLine" id="cb7-18" data-line-number="18"><span class="co">#&gt;    2: 158.520</span></a>
-<a class="sourceLine" id="cb7-19" data-line-number="19"><span class="co">#&gt;    3: 158.490</span></a>
-<a class="sourceLine" id="cb7-20" data-line-number="20"><span class="co">#&gt;    4: 158.480</span></a>
-<a class="sourceLine" id="cb7-21" data-line-number="21"><span class="co">#&gt;    5: 158.460</span></a>
-<a class="sourceLine" id="cb7-22" data-line-number="22"><span class="co">#&gt;   ---        </span></a>
-<a class="sourceLine" id="cb7-23" data-line-number="23"><span class="co">#&gt; 1435: 157.050</span></a>
-<a class="sourceLine" id="cb7-24" data-line-number="24"><span class="co">#&gt; 1436: 157.050</span></a>
-<a class="sourceLine" id="cb7-25" data-line-number="25"><span class="co">#&gt; 1437: 157.050</span></a>
-<a class="sourceLine" id="cb7-26" data-line-number="26"><span class="co">#&gt; 1438: 157.020</span></a>
-<a class="sourceLine" id="cb7-27" data-line-number="27"><span class="co">#&gt; 1439: 157.020</span></a></code></pre></div>
+<a class="sourceLine" id="cb7-4" data-line-number="4"><span class="co">#&gt;                        DT SYMBOL    BID    OFR BIDSIZ OFRSIZ MIDQUOTE   PRICE</span></a>
+<a class="sourceLine" id="cb7-5" data-line-number="5"><span class="co">#&gt;    1: 2018-01-02 09:30:34    XXX 158.46 158.58      1      1  158.520 158.525</span></a>
+<a class="sourceLine" id="cb7-6" data-line-number="6"><span class="co">#&gt;    2: 2018-01-02 09:30:37    XXX 158.46 158.58      3      1  158.520 158.520</span></a>
+<a class="sourceLine" id="cb7-7" data-line-number="7"><span class="co">#&gt;    3: 2018-01-02 09:30:40    XXX 158.49 158.62      5      1  158.555 158.490</span></a>
+<a class="sourceLine" id="cb7-8" data-line-number="8"><span class="co">#&gt;    4: 2018-01-02 09:30:49    XXX 158.48 158.55      4      1  158.515 158.480</span></a>
+<a class="sourceLine" id="cb7-9" data-line-number="9"><span class="co">#&gt;    5: 2018-01-02 09:30:51    XXX 158.48 158.55      4      1  158.515 158.460</span></a>
+<a class="sourceLine" id="cb7-10" data-line-number="10"><span class="co">#&gt;   ---                                                                        </span></a>
+<a class="sourceLine" id="cb7-11" data-line-number="11"><span class="co">#&gt; 1435: 2018-01-02 15:59:56    XXX 157.04 157.08      1      4  157.060 157.050</span></a>
+<a class="sourceLine" id="cb7-12" data-line-number="12"><span class="co">#&gt; 1436: 2018-01-02 15:59:57    XXX 157.04 157.06      5     10  157.050 157.050</span></a>
+<a class="sourceLine" id="cb7-13" data-line-number="13"><span class="co">#&gt; 1437: 2018-01-02 15:59:57    XXX 157.04 157.06      5     10  157.050 157.050</span></a>
+<a class="sourceLine" id="cb7-14" data-line-number="14"><span class="co">#&gt; 1438: 2018-01-02 15:59:59    XXX 157.04 157.06      8     25  157.050 157.020</span></a>
+<a class="sourceLine" id="cb7-15" data-line-number="15"><span class="co">#&gt; 1439: 2018-01-02 15:59:59    XXX 157.04 157.06      1      3  157.050 157.020</span></a></code></pre></div>
 <p>Here, we see that once more half of the trades are filtered out due to non-plausability.</p>
 </div>
 <div id="references" class="section level2">

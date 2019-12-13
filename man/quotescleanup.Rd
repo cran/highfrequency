@@ -4,18 +4,27 @@
 \alias{quotesCleanup}
 \title{Cleans quote data}
 \usage{
-quotesCleanup(datasource = NULL, datadestination = NULL, exchanges,
-  qdataraw = NULL, report = TRUE, selection = "median", maxi = 50,
-  window = 50, type = "advanced", rmoutliersmaxi = 10,
-  saveasxts = TRUE)
+quotesCleanup(
+  datasource = NULL,
+  datadestination = NULL,
+  exchanges,
+  qdataraw = NULL,
+  report = TRUE,
+  selection = "median",
+  maxi = 50,
+  window = 50,
+  type = "advanced",
+  rmoutliersmaxi = 10,
+  saveasxts = TRUE
+)
 }
 \arguments{
 \item{datasource}{character indicating the folder in which the original data is stored.}
 
 \item{datadestination}{character indicating the folder in which the cleaned data is stored.}
 
-\item{exchanges}{vector of stock exchange symbols for all tickers in vector "ticker". It thus should have the same length as the vector ticker.
-Only data from one single exchange will be retained for each stock respectively, e.g. exchanges = c("T","N").
+\item{exchanges}{vector of stock exchange symbols for all data in datasource, 
+e.g. exchanges = c("T","N") retrieves all stock market data from both NYSE and NASDAQ.
 The possible exchange symbols are:
 \itemize{
 \item A: AMEX
