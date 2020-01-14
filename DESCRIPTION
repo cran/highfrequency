@@ -1,6 +1,6 @@
 Package: highfrequency
-Version: 0.6.2
-Date: 2019-12-13
+Version: 0.6.3
+Date: 2020-01-14
 Title: Tools for Highfrequency Data Analysis
 Authors@R: 
     c(person(given = "Kris",
@@ -40,11 +40,11 @@ Suggests: covr, FKF, BMS, rugarch, testthat, knitr, rmarkdown
 RoxygenNote: 7.0.1
 VignetteBuilder: knitr
 NeedsCompilation: yes
-Packaged: 2019-12-13 16:01:59 UTC; Arbeit
+Packaged: 2020-01-14 17:15:37 UTC; Arbeit
 Author: Kris Boudt [aut, cre] (<https://orcid.org/0000-0002-1000-5142>),
   Jonathan Cornelissen [aut],
   Scott Payseur [aut],
   Giang Nguyen [ctb],
   Onno Kleen [aut] (<https://orcid.org/0000-0003-4731-4640>)
 Repository: CRAN
-Date/Publication: 2019-12-13 23:20:09 UTC
+Date/Publication: 2020-01-15 00:00:02 UTC

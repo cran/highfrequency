@@ -1,9 +1,9 @@
-fe2a8f1ee51784f0eba65edafea4d6dc *DESCRIPTION
+78836a42c8a1c38268902c9db2305ef9 *DESCRIPTION
 8c4f446ee40bc11c1647fc4c073065b9 *NAMESPACE
-3369b790f114919ca5f61e00adc9509b *NEWS.md
+77df624c235586e0c056a298a7fc3d4d *NEWS.md
 68c6b195517bd1386983ef2865b79a83 *R/RcppExports.R
 02b6939c1c62caadaa33ed0a58197fa9 *R/data.R
-4e62130d36c29261036ffdd5c268229f *R/data_handling.R
+6d8a39a06ef854a1149ad5134fcf4a54 *R/data_handling.R
 166a846269a0b1e7ab8b898859824c04 *R/har_model.R
 05e9e5f3878525ad17122459d3e63d6c *R/heavy_model.R
 446d0dd983e3a777d0ab45eb57b35ce8 *R/highfrequency.R
@@ -50,7 +50,7 @@ b0d7c6f8c62a848b073ca9779ba8f5f9 *man/RV.Rd
 9bf4332e5020b7070127c6fb4a66b275 *man/TSCov_bi.Rd
 a1b852eee2e86e6f2b02d329ad57401e *man/aggregatePrice.Rd
 907056393178cfbc01cb61f862962859 *man/aggregateQuotes.Rd
-ac1f6af9eb69cf0f13f63089418739bb *man/aggregateTrades.Rd
+e385f3fc4114fa90327b17aeaa7ebb6c *man/aggregateTrades.Rd
 0c9dac7fe4bd8af8e300866f5b7c4df4 *man/aggregatets.Rd
 aa4227782f33a7ca51d1e746f94c3f5a *man/autoSelectExchangeQuotes.Rd
 129c83e41eccb25bd37f211465e058a9 *man/autoSelectExchangeTrades.Rd
@@ -126,6 +126,7 @@ e226ea4e59e031598f1ce2e93ec23cef *man/tradesCleanupUsingQuotes.Rd
 fac46bfa4fe633ccb3ae31238da907bd *src/heavy_model.cpp
 9a8cdd611d64cfad62ebc9c5457263a5 *src/realized_measures.cpp
 95292912253ce34b0edde85765e80f28 *tests/testthat.R
+1810fca6dedc00c35332212c9cb0fc41 *tests/testthat/Rplots.pdf
 38c6629733031b2318b0b765300d0c1e *tests/testthat/tests_data_handling.R
 bcfe50e76c5cbb65d2293b877af2ffb2 *tests/testthat/tests_jump_tests.R
 368d07ba44eb6fbc3a9d51ceaffe8878 *tests/testthat/tests_liquidity_measures.R
