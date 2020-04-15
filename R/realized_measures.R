@@ -409,6 +409,7 @@ MRC <- function(pdata, pairwise = FALSE, makePsd = FALSE) {
 #' @importFrom data.table data.table
 #' @keywords volatility
 #' @export
+#' 
 rAVGCov <- function(rdata, cor = FALSE, align.by = "minutes", align.period = 5, makeReturns = FALSE) {
   
   DT = DT_ROUND = DT_SUBSAMPLE = FIRST_DT = MAXDT = RETURN = RETURN1 = RETURN2 = NULL
@@ -417,7 +418,7 @@ rAVGCov <- function(rdata, cor = FALSE, align.by = "minutes", align.period = 5, 
   if (multixts == TRUE) {
     stop("This function does not support having an xts object of multiple days as input. Please provide a timeseries of one day as input")
   }
-  
+   
   if (is.null(dim(rdata))) {
     n <- 1
   } else {
@@ -762,7 +763,7 @@ rBeta <- function(rdata, rindex, RCOVestimator = "rCov", RVestimator = "RV", mak
 #' @author Jonathan Cornelissen and Kris Boudt
 #' 
 #' @examples 
-#' # Realized Bipower Variance/Covariance for CTS aligned   
+#' # Realized Bipower Variance/Covariance for a price series aligned   
 #' # at 5 minutes.
 #'  
 #' # Univariate: 
@@ -868,7 +869,7 @@ rBPCov <- function(rdata, cor = FALSE, align.by = NULL, align.period = NULL, mak
 #' @author Jonathan Cornelissen and Kris Boudt
 #' 
 #' @examples 
-#' # Realized Variance/Covariance for CTS aligned   
+#' # Realized Variance/Covariance for prices aligned   
 #' # at 5 minutes.
 #' data(sample_tdata)
 #' data(sample_5minprices_jumps)
@@ -1131,15 +1132,12 @@ rKernelCov <- function(rdata, cor = FALSE,  align.by = "seconds", align.period =
       }
     }
     if (cor == FALSE) {
-      return(cov)
+      return(makePsd(cov))
     }
     if (cor == TRUE) {
       invsdmatrix <- try(solve(sqrt(diag(diag(cov)))), silent = F)
       if (inherits(invsdmatrix, "try-error") == FALSE) {
         rcor <- invsdmatrix %*% cov %*% invsdmatrix
-        if (makePsd == TRUE) {
-          rcor <- makePsd(rcor)
-        }
         return(rcor)
       }
     }
@@ -1333,7 +1331,7 @@ rMPV <- function(rdata, m = 2, p = 2, align.by = NULL, align.period = NULL, make
 #' @author Jonathan Cornelissen and Kris Boudt
 #' 
 #' @examples 
-#' # Realized Outlyingness Weighted Variance/Covariance for CTS aligned   
+#' # Realized Outlyingness Weighted Variance/Covariance for prices aligned   
 #' # at 5 minutes.
 #' 
 #' # Univariate: 
@@ -2057,7 +2055,7 @@ rQuar <- function(rdata, align.by = NULL, align.period = NULL, makeReturns = FAL
 #' @author Jonathan Cornelissen and Kris Boudt
 
 #' @examples 
-#' # Robust Realized two timescales Variance/Covariance for CTS
+#' # Robust Realized two timescales Variance/Covariance
 #' 
 #' # Univariate: 
 #' rvts <- rTSCov(pdata = sample_tdata$PRICE)

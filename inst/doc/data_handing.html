@@ -8,7 +8,7 @@
 <meta name="generator" content="pandoc" />
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 
 
@@ -115,9 +115,6 @@ padding-right: 2em;
 font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 font-size: 14px;
 line-height: 1.35;
-}
-#header {
-text-align: center;
 }
 #TOC {
 clear: both;
@@ -286,7 +283,8 @@ code > span.st { color: #d14; }
 code > span.co { color: #888888; font-style: italic; } 
 code > span.ot { color: #007020; } 
 code > span.al { color: #ff0000; font-weight: bold; } 
-code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
 </style>
 
 
@@ -308,24 +306,21 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <h2>Cleaning tick data on trades</h2>
 <p>We start by loading the highfrequency package and printing the head of one example data set that contains trade data for one stock on two days.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">library</span>(highfrequency)</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="co">#&gt; Registered S3 method overwritten by 'xts':</span></a>
-<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="co">#&gt;   method     from</span></a>
-<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="co">#&gt;   as.zoo.xts zoo</span></a>
-<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="kw">head</span>(sample_tdataraw_microseconds)</a>
-<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="co">#&gt;                     DT EX SYMBOL SYM_SUFFIX TR_SCOND SIZE  PRICE TR_CORR</span></a>
-<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="co">#&gt; 1: 2018-01-02 05:01:21  P    XXX         NA      FTI    2 157.80       0</span></a>
-<a class="sourceLine" id="cb1-8" data-line-number="8"><span class="co">#&gt; 2: 2018-01-02 05:23:50  P    XXX         NA      FTI    3 157.80       0</span></a>
-<a class="sourceLine" id="cb1-9" data-line-number="9"><span class="co">#&gt; 3: 2018-01-02 05:23:50  P    XXX         NA      FTI    1 157.80       0</span></a>
-<a class="sourceLine" id="cb1-10" data-line-number="10"><span class="co">#&gt; 4: 2018-01-02 07:11:54  P    XXX         NA        T  130 158.00       0</span></a>
-<a class="sourceLine" id="cb1-11" data-line-number="11"><span class="co">#&gt; 5: 2018-01-02 07:23:12  P    XXX         NA       TI   30 158.10       0</span></a>
-<a class="sourceLine" id="cb1-12" data-line-number="12"><span class="co">#&gt; 6: 2018-01-02 07:28:44  P    XXX         NA       TI   30 158.28       0</span></a>
-<a class="sourceLine" id="cb1-13" data-line-number="13"><span class="co">#&gt;    TR_SEQNUM TR_SOURCE TR_RF</span></a>
-<a class="sourceLine" id="cb1-14" data-line-number="14"><span class="co">#&gt; 1:     48101         C      </span></a>
-<a class="sourceLine" id="cb1-15" data-line-number="15"><span class="co">#&gt; 2:     48701         C      </span></a>
-<a class="sourceLine" id="cb1-16" data-line-number="16"><span class="co">#&gt; 3:     48801         C      </span></a>
-<a class="sourceLine" id="cb1-17" data-line-number="17"><span class="co">#&gt; 4:     67901         C      </span></a>
-<a class="sourceLine" id="cb1-18" data-line-number="18"><span class="co">#&gt; 5:     72101         C      </span></a>
-<a class="sourceLine" id="cb1-19" data-line-number="19"><span class="co">#&gt; 6:     73301         C</span></a></code></pre></div>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">head</span>(sample_tdataraw_microseconds)</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="co">#&gt;                     DT EX SYMBOL SYM_SUFFIX TR_SCOND SIZE  PRICE TR_CORR</span></a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="co">#&gt; 1: 2018-01-02 05:01:21  P    XXX         NA      FTI    2 157.80       0</span></a>
+<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="co">#&gt; 2: 2018-01-02 05:23:50  P    XXX         NA      FTI    3 157.80       0</span></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="co">#&gt; 3: 2018-01-02 05:23:50  P    XXX         NA      FTI    1 157.80       0</span></a>
+<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="co">#&gt; 4: 2018-01-02 07:11:54  P    XXX         NA        T  130 158.00       0</span></a>
+<a class="sourceLine" id="cb1-8" data-line-number="8"><span class="co">#&gt; 5: 2018-01-02 07:23:12  P    XXX         NA       TI   30 158.10       0</span></a>
+<a class="sourceLine" id="cb1-9" data-line-number="9"><span class="co">#&gt; 6: 2018-01-02 07:28:44  P    XXX         NA       TI   30 158.28       0</span></a>
+<a class="sourceLine" id="cb1-10" data-line-number="10"><span class="co">#&gt;    TR_SEQNUM TR_SOURCE TR_RF</span></a>
+<a class="sourceLine" id="cb1-11" data-line-number="11"><span class="co">#&gt; 1:     48101         C      </span></a>
+<a class="sourceLine" id="cb1-12" data-line-number="12"><span class="co">#&gt; 2:     48701         C      </span></a>
+<a class="sourceLine" id="cb1-13" data-line-number="13"><span class="co">#&gt; 3:     48801         C      </span></a>
+<a class="sourceLine" id="cb1-14" data-line-number="14"><span class="co">#&gt; 4:     67901         C      </span></a>
+<a class="sourceLine" id="cb1-15" data-line-number="15"><span class="co">#&gt; 5:     72101         C      </span></a>
+<a class="sourceLine" id="cb1-16" data-line-number="16"><span class="co">#&gt; 6:     73301         C</span></a></code></pre></div>
 <p>A quick look via summary into the data let’s us see that there are trades listed in the data set out of the bounds of the regular trading hours that are 9:30 to 16:00 on regular work days.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">summary</span>(sample_tdataraw_microseconds[, <span class="kw">c</span>(<span class="st">&quot;DT&quot;</span>, <span class="st">&quot;SIZE&quot;</span>, <span class="st">&quot;PRICE&quot;</span>)])</a>
 <a class="sourceLine" id="cb2-2" data-line-number="2"><span class="co">#&gt;        DT                           SIZE              PRICE      </span></a>
