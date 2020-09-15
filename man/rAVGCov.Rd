@@ -5,22 +5,25 @@
 \title{Realized Covariance: Average Subsample}
 \usage{
 rAVGCov(
-  rdata,
+  rData,
   cor = FALSE,
-  align.by = "minutes",
-  align.period = 5,
+  alignBy = "minutes",
+  alignPeriod = 5,
+  k = 1,
   makeReturns = FALSE
 )
 }
 \arguments{
-\item{rdata}{a \eqn{(M x N)} matrix/zoo/xts object containing the \eqn{N}
+\item{rData}{a \eqn{(M x N)} matrix/zoo/xts object containing the \eqn{N}
 return series over period \eqn{t}, with \eqn{M} observations during \eqn{t}.}
 
 \item{cor}{boolean, in case it is TRUE, the correlation is returned. FALSE by default.}
 
-\item{align.by}{Align the tick data to seconds|minutes|hours}
+\item{alignBy}{Align the tick data to seconds|minutes|hours. Default is \code{"minutes"}}
 
-\item{align.period}{Align the tick data to this many [seconds|minutes|hours]}
+\item{alignPeriod}{Align the tick data to this many [seconds|minutes|hours]. This can be a fraction. Default is \code{5}}
+
+\item{k}{numeric denoting which horizon to use for the subsambles. This can be a fraction as long as k is a divisor of alignPeriod default is \code{1}}
 
 \item{makeReturns}{Prices are passed make them into log returns}
 }
@@ -35,15 +38,19 @@ Realized Covariance using average subsample.
 # 5 subgrids (5 minutes).
 
 # Univariate
-rvSub <- rAVGCov(rdata = sample_tdata$PRICE, align.by = "minutes",
-                 align.period = 5, makeReturns = TRUE) 
+rvSub <- rAVGCov(rData = sampleTData$PRICE, alignBy = "minutes",
+                 alignPeriod = 5, makeReturns = TRUE) 
 rvSub
 
 # Multivariate:
-rcovSub <- rAVGCov(rdata = cbind(lltc, sbux, fill = 0), align.by = "minutes", 
-                   align.period = 5, makeReturns = FALSE)
+rcovSub <- rAVGCov(rData = cbind(lltc, sbux, fill = 0), alignBy = "minutes", 
+                   alignPeriod = 5, makeReturns = FALSE)
 rcovSub
 
+# Multivariate with a 30 second fast aggregation and a 2.5 minute slow aggregation.
+rcovSub <- rAVGCov(rData = cbind(lltc, sbux, fill = 0), 
+                   alignBy = "minutes", alignPeriod = 2.5, k = 0.5, makeReturns = FALSE)
+rcovSub
 }
 \references{
 L. Zhang, P.A Mykland, and Y. Ait-Sahalia. A tale of two time scales: Determining integrated volatility with noisy high-frequency data. \emph{Journal of the American Statistical Association}, 2005.

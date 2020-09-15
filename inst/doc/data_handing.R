@@ -6,29 +6,29 @@ knitr::opts_chunk$set(
 
 ## -----------------------------------------------------------------------------
 library(highfrequency)
-head(sample_tdataraw_microseconds)
+head(sampleTDataRawMicroseconds)
 
 ## ----eval = TRUE--------------------------------------------------------------
-summary(sample_tdataraw_microseconds[, c("DT", "SIZE", "PRICE")])
+summary(sampleTDataRawMicroseconds[, c("DT", "SIZE", "PRICE")])
 
 ## ----eval = TRUE--------------------------------------------------------------
-tdata_cleaned <- tradesCleanup(tdataraw = sample_tdataraw_microseconds, exchange = "N")
+tDataCleaned <- tradesCleanup(tDataRaw = sampleTDataRawMicroseconds, exchange = "N")
 
 ## ----eval = TRUE--------------------------------------------------------------
-tdata_cleaned$report
+tDataCleaned$report
 
-summary(tdata_cleaned$tdata[, c("DT", "SIZE", "PRICE")])
-
-## ----eval = TRUE--------------------------------------------------------------
-qdata_cleaned <- quotesCleanup(qdataraw = sample_qdataraw_microseconds, exchange = "N")
+summary(tDataCleaned$tData[, c("DT", "SIZE", "PRICE")])
 
 ## ----eval = TRUE--------------------------------------------------------------
-qdata_cleaned$report
-
-summary(qdata_cleaned$qdata[, c("DT", "OFR", "OFRSIZ", "BID", "BIDSIZ", "MIDQUOTE")])
+qDataCleaned <- quotesCleanup(qDataRaw = sampleQDataRawMicroseconds, exchange = "N")
 
 ## ----eval = TRUE--------------------------------------------------------------
-tqdata_cleaned <- tradesCleanupUsingQuotes(tdata = tdata_cleaned$tdata[as.Date(DT) == "2018-01-02"], 
-                                           qdata = qdata_cleaned$qdata[as.Date(DT) == "2018-01-02"])
-tqdata_cleaned
+qDataCleaned$report
+
+summary(qDataCleaned$qData[, c("DT", "OFR", "OFRSIZ", "BID", "BIDSIZ", "MIDQUOTE")])
+
+## ----eval = TRUE--------------------------------------------------------------
+tqDataCleaned <- tradesCleanupUsingQuotes(tData = tDataCleaned$tData[as.Date(DT) == "2018-01-02"], 
+                                           qData = qDataCleaned$qData[as.Date(DT) == "2018-01-02"])
+tqDataCleaned
 

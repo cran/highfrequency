@@ -5,7 +5,7 @@
 \title{Robust two time scale covariance estimation}
 \usage{
 rRTSCov(
-  pdata,
+  pData,
   cor = FALSE,
   startIV = NULL,
   noisevar = NULL,
@@ -20,7 +20,7 @@ rRTSCov(
 )
 }
 \arguments{
-\item{pdata}{a list. Each list-item i contains an xts object with the intraday price data 
+\item{pData}{a list. Each list-item i contains an xts object with the intraday price data 
 of stock i for day t.}
 
 \item{cor}{boolean, in case it is TRUE, the correlation is returned. FALSE by default.}
@@ -102,14 +102,14 @@ matrix. This function replaces the negative eigenvalues with zeroes.
 }
 \examples{
 # Robust Realized two timescales Variance/Covariance
-data(sample_tdata)
+data(sampleTData)
 # Univariate: 
-rvRTS <- rRTSCov(pdata = sample_tdata$PRICE)
+rvRTS <- rRTSCov(pData = sampleTData$PRICE)
 # Note: Prices as input
 rvRTS 
 
 # Multivariate:
-rcRTS <- rRTSCov(pdata = list(cumsum(lltc) + 100, cumsum(sbux) + 100))
+rcRTS <- rRTSCov(pData = list(cumsum(lltc) + 100, cumsum(sbux) + 100))
 # Note: List of prices as input
 rcRTS 
 
@@ -117,7 +117,7 @@ rcRTS
 \references{
 Boudt K. and Zhang, J. 2010. Jump robust two time scale covariance estimation and realized volatility budgets. Mimeo.
 
-Harris, F., T. McInish, G. Shoesmith, and R. Wood (1995). Cointegration, error correction, and price discovery on infomationally linked security markets. Journal of Financial and Quantitative Analysis 30, 563-581.
+Harris, F., T. McInish, G. Shoesmith, and R. Wood (1995). Cointegration, error correction, and price discovery on informartionally linked security markets. Journal of Financial and Quantitative Analysis 30, 563-581.
 
 Zhang, L., P. A. Mykland, and Y. Ait-Sahalia (2005). A tale of two time scales: Determining integrated volatility with noisy high-frequency data. Journal of the American Statistical Association 100, 1394-1411.
 }

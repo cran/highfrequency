@@ -1,6 +1,6 @@
 Package: highfrequency
-Version: 0.6.5
-Date: 2020-04-14
+Version: 0.7.0
+Date: 2020-09-11
 Title: Tools for Highfrequency Data Analysis
 Authors@R: 
     c(person(given = "Kris",
@@ -21,7 +21,10 @@ Authors@R:
       person(given = "Onno",
              family = "Kleen",
              role = "aut",
-             comment = c(ORCID = "0000-0003-4731-4640")))
+             comment = c(ORCID = "0000-0003-4731-4640")),
+      person(given = "Emil",
+             family = "Sjoerup",
+             role = "aut"))
 Maintainer: Kris Boudt
  <kris.boudt@ugent.be>
 Description: Provide functionality to manage, clean and match highfrequency
@@ -35,17 +38,18 @@ URL: https://github.com/jonathancornelissen/highfrequency
 Depends: R (>= 3.5.0)
 Imports: xts, zoo, Rcpp, RcppArmadillo, graphics, methods, stats,
         utils, grDevices, robustbase, cubature, mvtnorm, data.table (>=
-        1.12.0), RcppRoll, lubridate, readr
+        1.12.0), RcppRoll, quantmod, sandwich
 LinkingTo: Rcpp, RcppArmadillo
 Suggests: covr, FKF, BMS, rugarch, testthat, knitr, rmarkdown
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.1
 VignetteBuilder: knitr
 NeedsCompilation: yes
-Packaged: 2020-04-15 16:47:05 UTC; Arbeit
+Packaged: 2020-09-15 09:14:51 UTC; emil
 Author: Kris Boudt [aut, cre] (<https://orcid.org/0000-0002-1000-5142>),
   Jonathan Cornelissen [aut],
   Scott Payseur [aut],
   Giang Nguyen [ctb],
-  Onno Kleen [aut] (<https://orcid.org/0000-0003-4731-4640>)
+  Onno Kleen [aut] (<https://orcid.org/0000-0003-4731-4640>),
+  Emil Sjoerup [aut]
 Repository: CRAN
-Date/Publication: 2020-04-15 23:20:06 UTC
+Date/Publication: 2020-09-15 22:20:19 UTC

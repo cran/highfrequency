@@ -4,10 +4,10 @@
 \alias{mergeTradesSameTimestamp}
 \title{Merge multiple transactions with the same time stamp}
 \usage{
-mergeTradesSameTimestamp(tdata, selection = "median")
+mergeTradesSameTimestamp(tData, selection = "median")
 }
 \arguments{
-\item{tdata}{an xts object containing the time series data, with 
+\item{tData}{an xts object containing the time series data, with 
 one column named "PRICE" indicating the transaction price 
 and one column "SIZE" indicating the number of shares traded.}
 
@@ -25,6 +25,9 @@ data.table or xts object depending on input
 }
 \description{
 Function replaces multiple transactions that have the same time stamp by a single one and returns an xts or data.table object with unique time stamps only.
+}
+\note{
+previously this function returned the mean of the size of the merged trades (pre version 0.7 and when not using max.volume as the criterion), now it returns the sum.
 }
 \author{
 Jonathan Cornelissen and Kris Boudt

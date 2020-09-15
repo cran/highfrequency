@@ -9,10 +9,10 @@ Function returns an xts or data.table object containing 23 liquidity measures. P
 Note that this assumes a regular time grid. The Lee + Ready measure
 uses two lags for the Tick Rule.}
 \usage{
-getLiquidityMeasures(tqdata, win = 300, type = NULL)
+getLiquidityMeasures(tqData, win = 300, type = NULL)
 }
 \arguments{
-\item{tqdata}{A \code{data.table} or xts object as in the \pkg{highfrequency} merged
+\item{tqData}{A \code{data.table} or xts object as in the \pkg{highfrequency} merged
 trades and quotes data (that is included).}
 
 \item{win}{A windows length for the forward-prices used for \sQuote{realized}
@@ -76,7 +76,7 @@ The respective liquidity measures are defined as follows:
    so this is were the time indication refers to (and thus not to the registered quote timestamp).
  } 
  
- \item{depthImbalanceRatio: depth imbalace (as ratio)}{
+ \item{depthImbalanceRatio: depth imbalance (as ratio)}{
    \deqn{
      \mbox{depth imbalance (as ratio)}_t =  (\frac{\mbox{OFRSIZ}_{t}}{\mbox{BIDSIZ}_{t}})^{D_t},
    }
@@ -231,8 +231,8 @@ The respective liquidity measures are defined as follows:
  }
 }
 \examples{
-tqdata <- matchTradesQuotes(sample_tdata, sample_qdata)
-res <- getLiquidityMeasures(tqdata)
+tqData <- matchTradesQuotes(sampleTData, sampleQData)
+res <- getLiquidityMeasures(tqData)
 head(res)
 }
 \references{
