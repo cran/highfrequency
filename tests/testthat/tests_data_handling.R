@@ -1,4 +1,5 @@
-library(xts)
+library("xts")
+library("data.table")
 context("autoSelectExchangeTrades")
 test_that("autoSelectExchangeTrades", {
   expect_equal(
@@ -113,7 +114,6 @@ test_that("tradesCleanup on-disk functionality", {
   if(Sys.getenv("USERNAME") != "emil"){
     skip("Skipped to not mess with other people's files")
   }
-  library(data.table)
   DT <- SYMBOL <- NULL
   trades2 <- sampleTDataRawMicroseconds
   quotes2 <- sampleQDataRawMicroseconds
@@ -301,7 +301,7 @@ test_that("aggregateQuotes milliseconds vs seconds", {
 
 context("business time aggregation")
 test_that("business time aggregation",{
-  
+  skip_if_not(capabilities('long.double'), 'Skip tests when long double is not available')
   pData <- sampleTDataMicroseconds
   agged1 <- businessTimeAggregation(pData, measure = "intensity", obs = 390, bandwidth = 0.075)
   expect_equal(nrow(agged1$pData), 780) # We return the correct number of observations
