@@ -6,13 +6,13 @@ knitr::opts_chunk$set(
 
 ## -----------------------------------------------------------------------------
 library(highfrequency)
-head(sampleTDataRawMicroseconds)
+head(sampleTDataRaw)
 
 ## ----eval = TRUE--------------------------------------------------------------
-summary(sampleTDataRawMicroseconds[, c("DT", "SIZE", "PRICE")])
+summary(sampleTDataRaw[, c("DT", "SIZE", "PRICE")])
 
 ## ----eval = TRUE--------------------------------------------------------------
-tDataCleaned <- tradesCleanup(tDataRaw = sampleTDataRawMicroseconds, exchange = "N")
+tDataCleaned <- tradesCleanup(tDataRaw = sampleTDataRaw, exchange = "N")
 
 ## ----eval = TRUE--------------------------------------------------------------
 tDataCleaned$report
@@ -20,7 +20,7 @@ tDataCleaned$report
 summary(tDataCleaned$tData[, c("DT", "SIZE", "PRICE")])
 
 ## ----eval = TRUE--------------------------------------------------------------
-qDataCleaned <- quotesCleanup(qDataRaw = sampleQDataRawMicroseconds, exchange = "N")
+qDataCleaned <- quotesCleanup(qDataRaw = sampleQDataRaw, exchange = "N")
 
 ## ----eval = TRUE--------------------------------------------------------------
 qDataCleaned$report
