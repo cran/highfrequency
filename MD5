@@ -1,4 +1,4 @@
-7b128a53ab8de803825ac1577ae4709d *DESCRIPTION
+b68ef480334c038c0c74dc42afc44a70 *DESCRIPTION
 f513a00b825016ad6126d9beeb08cbf3 *NAMESPACE
 057e058ddf25501f8f76498880e3529c *NEWS.md
 1e0a705b3064efdc0018a3cc95d1c158 *R/HARmodel.R
@@ -34,7 +34,7 @@ a3b4e165e70fabdbb8e8c2983d01bd15 *data/sampleTDataEurope.rda
 fd1f81823f65ab63353321c2508e34ee *data/sampleTDataRaw.rda
 459f18e1f454c6d64a1b2874970b7461 *inst/doc/data_handing.R
 c560e3cc82b8c0df7b29f6cfd3d5282c *inst/doc/data_handing.Rmd
-86c491abd35676bb42dc5ca72c1e2213 *inst/doc/data_handing.html
+6497074a82974b2f6ff0b12cd8526c28 *inst/doc/data_handing.html
 7dc591070529bd0303940552ceb70354 *man/AJjumpTest.Rd
 bc4f82be304b1d216dbcb7f3684d54dc *man/BNSjumpTest.Rd
 61616e3c5e6e34845e23904725bb63fb *man/Bj.Rd
@@ -139,13 +139,13 @@ a019828777afaf5e056094ef4f1e1245 *src/internals.h
 56ce61b40e1feffc9e1bda7cfce2c3b7 *src/leadLag.cpp
 0670d4fd9e0ecfff7891cd1461ddc683 *src/realizedMeasures.cpp
 95292912253ce34b0edde85765e80f28 *tests/testthat.R
-3d749038aeda6f92cd149674a212d42b *tests/testthat/Rplots.pdf
+bd3c343d0283523833f29b554c70a7c2 *tests/testthat/Rplots.pdf
 7077cb3ebd83a64c7ac6ec33fe9e4db0 *tests/testthat/tests_data_handling.R
 03c2ea618ca6f1cdd32e7d58ed2f24f9 *tests/testthat/tests_driftBursts.R
 568bdcc68f1a8071d79e13d2c5b908de *tests/testthat/tests_jump_tests.R
-d24609c51efa82d1d1a4b442f4236f36 *tests/testthat/tests_leadLag.R
+eced22115392173646191a525c4ae07c *tests/testthat/tests_leadLag.R
 9f178953e8b619814456479d9707a205 *tests/testthat/tests_liquidity_measures.R
-238641e42d42643ff25a5d925e2df4b6 *tests/testthat/tests_models.R
+5a4e127d3677c2ccf5ea32865a4966fc *tests/testthat/tests_models.R
 54a35442592fc69596164b8e168b5090 *tests/testthat/tests_realized_measures.R
 84cfadbf6612057e17b4dc10577764e8 *tests/testthat/tests_spotvol_and_drift.R
 c560e3cc82b8c0df7b29f6cfd3d5282c *vignettes/data_handing.Rmd
