@@ -82,6 +82,7 @@ harInsanityFilter <- function(fittedValues, lower, upper, replacement) {
 #' @param inputType a string denoting if the input data consists of realized measures or high-frequency returns. 
 #' Default "RM" is the only way to denote realized measures and everything else denotes returns.
 #' @param jumpTest the function name of a function used to test whether the test statistic which determines whether the jump variability is significant that day. By default \code{jumpTest = "ABDJumptest"}, hence using the test statistic in Equation or Equation (18) of Andersen et al. (2007).
+#' It is also possible to provide pre-computed test statistics for jump tests by setting \code{jumpTest} to \code{"testStat"}. These test statistics should still be passed as the third column.
 #' @param alpha a real indicating the confidence level used in testing for jumps. By default \code{alpha = 0.05}.
 #' @param h an integer indicating the number over how many days the dependent variable should be aggregated.
 #' By default, \code{h = 1}, i.e. no aggregation takes place, you just model the daily realized volatility.
@@ -105,6 +106,8 @@ harInsanityFilter <- function(fittedValues, lower, upper, replacement) {
 #' the conditional mean of  \eqn{\varepsilon_{t+1}} is equal to zero.
 #' 
 #' For other specifications, please refer to the cited papers.
+#'
+#' The standard errors reporting in the \code{print} and \code{summary} methods are Newey-West standard errors calculated with the \pkg{sandwich} package.
 #'
 #' @references 
 #' Andersen, T. G., Bollerslev, T., and Diebold, F. (2007). Roughing it up: Including jump components in the measurement, modelling and forecasting of return volatility. \emph{The Review of Economics and Statistics}, 89, 701-720.
@@ -173,6 +176,12 @@ harInsanityFilter <- function(fittedValues, lower, upper, replacement) {
 #' x
 #' # plot(x)
 #' predict(x)
+#' 
+#' # Example 6: HARCJ with pre-computed test-statistics
+#' ## BNSJumptest manually calculated.
+#' testStats <- sqrt(390) * (SPYRM$RV1 - SPYRM$BPV1)/sqrt((pi^2/4+pi-3 - 2) * SPYRM$medRQ1)
+#' model <- HARmodel(cbind(as.xts(SPYRM[, list(DT, RV5, BPV5)]), testStats), type = "HARCJ")
+#' 
 #'
 #' @author Jonathan Cornelissen, Kris Boudt, Onno Kleen, and Emil Sjoerup.
 #' @import RcppArmadillo
@@ -238,7 +247,7 @@ HARmodel <- function(data, periods = c(1, 5, 22), periodsJ = c(1, 5, 22), period
     if (type == "HARQ") {
       RM3 <- data[,2]
     }
-    if (type %in% c("HARQJ", "CHARQ")) {
+    if (type %in% c("HARQJ", "CHARQ", "HARCJ")) {
       RM2 <- data[, 2]
       RM3 <- data[, 3]
     }
@@ -248,7 +257,11 @@ HARmodel <- function(data, periods = c(1, 5, 22), periodsJ = c(1, 5, 22), period
   
   
   # Get the matrix for estimation of linear model:
-  maxp <- max(periods,periodsJ,periodsQ) # Max number of aggregation levels
+  # This looks weird, but we need to make sure that we don't consider periodsJ in maxp when type == "HAR"
+  # and in other similar cases.
+  maxp <- max(
+    c(periods,periodsJ[type %in% jumpModels],periodsQ[type %in% quarticityModels])
+              ) # Max number of aggregation levels
 
   if (!is.null(leverage)) {
     maxp <- max(maxp,leverage)
@@ -293,7 +306,7 @@ HARmodel <- function(data, periods = c(1, 5, 22), periodsJ = c(1, 5, 22), period
 
   if (!is.null(leverage)) {
     if (sum(data < 0) == 0) {
-      warning("You cannot use leverage variables in the model in case your input consists of Realized Measures")
+      stop("You cannot use leverage variables in the model in case your input consists of Realized Measures")
     }
 
     # Get close-to-close returns
@@ -301,7 +314,7 @@ HARmodel <- function(data, periods = c(1, 5, 22), periodsJ = c(1, 5, 22), period
     # Get the rmins:
     rmintemp <- pmin(e,0)
     # Aggregate everything:
-    rmin <- as.data.frame(har_agg(rmintemp, leverage, length(leverage))[(maxp:(n-h)), ,drop = FALSE])
+    rmin <- har_agg(rmintemp, leverage, length(leverage))[(maxp:(n-h)),]
     colnames(rmin) <- paste0("Rmin", leverage)
     # Select:
     #rmin <- rmin[(maxp:(n-h)),]
@@ -331,15 +344,12 @@ HARmodel <- function(data, periods = c(1, 5, 22), periodsJ = c(1, 5, 22), period
     if(!is.null(externalRegressor)){
       type <- paste0(type, "-X")
     }
-    
-    
     model$RVest <- RVest[1]
-
   } #End HAR-RV if cond
 
   if (type == "HARJ") {
     if (!is.null(transform) && transform == "log") {
-      J <- J + 1
+      J <- J + 1 # will be transformed below in x <- Ftransform(x)
     }
     J <- J[(maxp:(n-h)),,drop = FALSE]
     x <- cbind(x1,J)         # bind jumps to RV data
@@ -349,7 +359,6 @@ HARmodel <- function(data, periods = c(1, 5, 22), periodsJ = c(1, 5, 22), period
     }
     x <- cbind(x, rmin)
     model <- estimhar(y = y, x = x, externalRegressor = externalRegressor)
-    model$fitted.values <- harInsanityFilter(fittedValues = model$fitted.values, lower = min(RM1), upper = max(RM1), replacement = mean(RM1))
     if(!is.null(externalRegressor)){
       type <- paste0(type, "-X")
     }
@@ -358,7 +367,7 @@ HARmodel <- function(data, periods = c(1, 5, 22), periodsJ = c(1, 5, 22), period
 
   if (type == "HARCJ") {
     # Are the jumps significant? if not set to zero:
-    if (jumpTest == "ABDJumptest" ) {
+    if (jumpTest == "ABDJumptest") {
       
       if(inputType != "RM"){
         TQ <- apply.daily(data, rTPQuar) 
@@ -368,6 +377,8 @@ HARmodel <- function(data, periods = c(1, 5, 22), periodsJ = c(1, 5, 22), period
       
       J <- J[,1]
       teststats <- ABDJumptest(RV=RM1,BPV=RM2,TQ=TQ )
+    } else if(jumpTest == "testStats") {
+      teststats <- RM3
     } else {
       jtest <- match.fun(jumpTest)
       teststats <- jtest(data,...)
@@ -388,7 +399,7 @@ HARmodel <- function(data, periods = c(1, 5, 22), periodsJ = c(1, 5, 22), period
     Cmatrix <- Cmatrix[(maxp:(n-h)), ]
     Jmatrix <- Jmatrix[(maxp:(n-h)), ]
     if (!is.null(transform) && transform=="log") {
-      Jmatrix <- Jmatrix + 1
+      Jmatrix <- Jmatrix + 1 # Will be transformed later
     }
 
     x <- cbind(Cmatrix, Jmatrix)              # bind jumps to RV data
@@ -401,7 +412,6 @@ HARmodel <- function(data, periods = c(1, 5, 22), periodsJ = c(1, 5, 22), period
     model$RVest <- RVest
     model$jumpTest <- jumpTest
     model$alpha_jumps <- alpha
-    model$fitted.values <- harInsanityFilter(fittedValues = model$fitted.values, lower = min(RM1), upper = max(RM1), replacement = mean(RM1))
     if(!is.null(externalRegressor)){
       type <- paste0(type, "-X")
     }
@@ -423,7 +433,6 @@ HARmodel <- function(data, periods = c(1, 5, 22), periodsJ = c(1, 5, 22), period
     }
     x1 <- cbind(x1,rmin)
     model <- estimhar(y = y, x = x1, externalRegressor = externalRegressor)
-    model$fitted.values <- harInsanityFilter(fittedValues = model$fitted.values, lower = min(RM1), upper = max(RM1), replacement = mean(RM1))
     model$RVest <- RVest[1]
     if(!is.null(externalRegressor)){
       type <- paste0(type, "-X")
@@ -432,7 +441,7 @@ HARmodel <- function(data, periods = c(1, 5, 22), periodsJ = c(1, 5, 22), period
 
   if (type == "HARQJ") {
     if (!is.null(transform) && transform == "log") {
-      J <- J + 1
+      J <- log(J + 1)
     }
     J <- J[(maxp:(n-h)),, drop = FALSE]
     if (!is.null(transform)) {
@@ -448,7 +457,6 @@ HARmodel <- function(data, periods = c(1, 5, 22), periodsJ = c(1, 5, 22), period
     }
     x1 <- cbind(x1,rmin);
     model <-  estimhar(y = y, x = x1, externalRegressor = externalRegressor)
-    model$fitted.values <- harInsanityFilter(fittedValues = model$fitted.values, lower = min(RM1), upper = max(RM1), replacement = mean(RM1))
     model$RVest <- RVest[1]
     if(!is.null(externalRegressor)){
       type <- paste0(type, "-X")
@@ -482,7 +490,6 @@ HARmodel <- function(data, periods = c(1, 5, 22), periodsJ = c(1, 5, 22), period
     }
     x2 <- cbind(x2,rmin)
     model <- estimhar(y = y, x = x2, externalRegressor = externalRegressor)
-    model$fitted.values <- harInsanityFilter(fittedValues = model$fitted.values, lower = min(RM1), upper = max(RM1), replacement = mean(RM1))
     model$RVest <- RVest[1]
     if(!is.null(externalRegressor)){
       type <- paste0(type, "-X")
@@ -490,9 +497,8 @@ HARmodel <- function(data, periods = c(1, 5, 22), periodsJ = c(1, 5, 22), period
   } #End CHAR-RVQ if cond
   
   
-  if(!is.null(externalRegressor)){
-    model$fitted.values <- harInsanityFilter(fittedValues = model$fitted.values, lower = min(RM1), upper = max(RM1), replacement = mean(RM1))
-  }
+  model$fitted.values <- harInsanityFilter(fittedValues = model$fitted.values, lower = min(y, 0), upper = max(y), replacement = mean(y))
+  model$residuals <- model$model[, "y"] - model$fitted.values
   
   model$dates <- alldates[(maxp+h):n]
   model$type <- type
@@ -502,6 +508,7 @@ HARmodel <- function(data, periods = c(1, 5, 22), periodsJ = c(1, 5, 22), period
   model$inputType <- inputType
   model$h <- h
   model$leverage <- leverage
+  model$maxp <- maxp
   class(model) <- c("HARmodel", "lm")
   return (model)
 }
@@ -569,7 +576,7 @@ plot.HARmodel <- function(x, ...){
 predict.HARmodel <- function(object, ... ){
   options <- list(...)
   #### List of standard options
-  opt <- list(newdata = NULL, warnings = TRUE, backtransform = NULL)
+  opt <- list(newdata = NULL, warnings = TRUE, backtransform = "simple")
   #### Override standard options where user passed new options
   opt[names(options)] <- options
   newdata <- opt$newdata
@@ -922,13 +929,13 @@ predict.HARmodel <- function(object, ... ){
 #' Printing method for \code{HARmodel} objects
 #' @param x object of type \code{HARmodel}
 #' @param ... extra options
-#' @details The printing method has the extra option \code{digits} which can be used to set the number of digits for printing
+#' @details The printing method has the extra option \code{digits} which can be used to set the number of digits for printing pass \code{lag} to determine the maximum order of the Newey West estimator. Default is \code{22}
 #' @importFrom stats coef
 #' @importFrom sandwich NeweyWest
 #' @export
 print.HARmodel <- function(x, ...){
   options <- list(...)
-  opt <- list(digits = max(3, getOption("digits") - 3))
+  opt <- list(digits = max(3, getOption("digits") - 3), lag = x$maxp)
   opt[names(options)] <- options
   digits <- opt$digits
   formula <- getHarmodelformula(x); modeldescription = formula[[1]]; betas = formula[[2]];
@@ -937,7 +944,7 @@ print.HARmodel <- function(x, ...){
       "\n\n", sep = "")
 
   coefs <- coef(x);
-  x$NeweyWestSE <- sandwich::NeweyWest(x)
+  x$NeweyWestSE <- sandwich::NeweyWest(x, lag = opt$lag)
   NeweyWestSE <- x$NeweyWestSE
   names(coefs) <- c("beta0",betas)
   colnames(NeweyWestSE) <- rownames(NeweyWestSE) <- c("beta0",betas)
@@ -945,7 +952,7 @@ print.HARmodel <- function(x, ...){
     cat("Coefficients:\n")
     print.default(format(coefs, digits = digits), print.gap = 2,quote = FALSE);
     cat("Newey-West Standard Errors:\n");
-    print.default(format(diag(NeweyWestSE), digits = digits), print.gap = 2,quote = FALSE);
+    print.default(format(sqrt(diag(NeweyWestSE)), digits = digits), print.gap = 2,quote = FALSE);
     cat("\n\n");
     Rs <- summary(x)[c("r.squared", "adj.r.squared")]
     zz <- c(Rs$r.squared,Rs$adj.r.squared);
@@ -959,14 +966,16 @@ print.HARmodel <- function(x, ...){
 
 #' Summary for \code{HARmodel} objects
 #' @param object An object of class \code{HARmodel}
-#' @param ... unused - do not set.
+#' @param ... pass \code{lag} to determine the maximum order of the Newey West estimator. Default is \code{22}
 #' @return A modified \code{summary.lm}
 #' @importFrom stats summary.lm pt
 #' @importFrom sandwich NeweyWest
 #' @export
 summary.HARmodel <- function(object, ...){
+  op <- list(lag = 22)
+  op[names(options)] <- list(...)
   dd <- summary.lm(object)
-  dd$coefficients[,"Std. Error"] <- sqrt(diag(NeweyWest(object, lag = 22)))
+  dd$coefficients[,"Std. Error"] <- sqrt(diag(NeweyWest(object, lag = op$lag)))
   dd$coefficients[,"t value"] <- dd$coefficients[,"Estimate"] / dd$coefficients[,"Std. Error"]
   dd$coefficients[,"Pr(>|t|)"] <- 2 * pt(abs(dd$coefficients[, "t value"]), object$df.residual, lower.tail = FALSE)
   formula <- getHarmodelformula(object)

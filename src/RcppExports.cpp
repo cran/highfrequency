@@ -126,15 +126,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// refreshTimeMathing
-Rcpp::List refreshTimeMathing(const arma::mat& x, arma::vec& idx);
-RcppExport SEXP _highfrequency_refreshTimeMathing(SEXP xSEXP, SEXP idxSEXP) {
+// refreshTimeMatching
+Rcpp::List refreshTimeMatching(const arma::mat& x, arma::vec& idx);
+RcppExport SEXP _highfrequency_refreshTimeMatching(SEXP xSEXP, SEXP idxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
     Rcpp::traits::input_parameter< arma::vec& >::type idx(idxSEXP);
-    rcpp_result_gen = Rcpp::wrap(refreshTimeMathing(x, idx));
+    rcpp_result_gen = Rcpp::wrap(refreshTimeMatching(x, idx));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -247,6 +247,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// tickGrouping_RETURNS
+arma::vec tickGrouping_RETURNS(const int end, const int size);
+RcppExport SEXP _highfrequency_tickGrouping_RETURNS(SEXP endSEXP, SEXP sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const int >::type end(endSEXP);
+    Rcpp::traits::input_parameter< const int >::type size(sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(tickGrouping_RETURNS(end, size));
+    return rcpp_result_gen;
+END_RCPP
+}
 // leadLagCpp
 arma::vec leadLagCpp(const arma::vec& x, const arma::vec& timestampsX, const arma::vec& y, const arma::vec& timestampsY, const arma::vec lags, const bool normalize);
 RcppExport SEXP _highfrequency_leadLagCpp(SEXP xSEXP, SEXP timestampsXSEXP, SEXP ySEXP, SEXP timestampsYSEXP, SEXP lagsSEXP, SEXP normalizeSEXP) {
@@ -325,23 +337,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rv
-double rv(NumericVector a, NumericVector b, int na, int period, NumericVector tmpa, NumericVector tmpb, int tmpna);
-RcppExport SEXP _highfrequency_rv(SEXP aSEXP, SEXP bSEXP, SEXP naSEXP, SEXP periodSEXP, SEXP tmpaSEXP, SEXP tmpbSEXP, SEXP tmpnaSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type a(aSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type b(bSEXP);
-    Rcpp::traits::input_parameter< int >::type na(naSEXP);
-    Rcpp::traits::input_parameter< int >::type period(periodSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type tmpa(tmpaSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type tmpb(tmpbSEXP);
-    Rcpp::traits::input_parameter< int >::type tmpna(tmpnaSEXP);
-    rcpp_result_gen = Rcpp::wrap(rv(a, b, na, period, tmpa, tmpb, tmpna));
-    return rcpp_result_gen;
-END_RCPP
-}
 // pcovcc
 NumericVector pcovcc(NumericVector a, NumericVector ap, NumericVector b, NumericVector at, NumericVector atp, NumericVector bt, int na, int nap, int nb, int period);
 RcppExport SEXP _highfrequency_pcovcc(SEXP aSEXP, SEXP apSEXP, SEXP bSEXP, SEXP atSEXP, SEXP atpSEXP, SEXP btSEXP, SEXP naSEXP, SEXP napSEXP, SEXP nbSEXP, SEXP periodSEXP) {
@@ -362,6 +357,47 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// bacImpliedBetaHYCpp
+Rcpp::List bacImpliedBetaHYCpp(arma::mat& components, const arma::mat& missings, arma::mat& componentWeights);
+RcppExport SEXP _highfrequency_bacImpliedBetaHYCpp(SEXP componentsSEXP, SEXP missingsSEXP, SEXP componentWeightsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat& >::type components(componentsSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type missings(missingsSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type componentWeights(componentWeightsSEXP);
+    rcpp_result_gen = Rcpp::wrap(bacImpliedBetaHYCpp(components, missings, componentWeights));
+    return rcpp_result_gen;
+END_RCPP
+}
+// bacImpliedBetaCpp
+arma::rowvec bacImpliedBetaCpp(const arma::mat& components, const arma::mat& missings, const arma::mat& componentWeights);
+RcppExport SEXP _highfrequency_bacImpliedBetaCpp(SEXP componentsSEXP, SEXP missingsSEXP, SEXP componentWeightsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type components(componentsSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type missings(missingsSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type componentWeights(componentWeightsSEXP);
+    rcpp_result_gen = Rcpp::wrap(bacImpliedBetaCpp(components, missings, componentWeights));
+    return rcpp_result_gen;
+END_RCPP
+}
+// bacHY
+double bacHY(const arma::colvec& component, const arma::colvec& ETF, const arma::uvec& missingComponent, const arma::uvec& missingETF, const arma::colvec& componentWeightings);
+RcppExport SEXP _highfrequency_bacHY(SEXP componentSEXP, SEXP ETFSEXP, SEXP missingComponentSEXP, SEXP missingETFSEXP, SEXP componentWeightingsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::colvec& >::type component(componentSEXP);
+    Rcpp::traits::input_parameter< const arma::colvec& >::type ETF(ETFSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type missingComponent(missingComponentSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type missingETF(missingETFSEXP);
+    Rcpp::traits::input_parameter< const arma::colvec& >::type componentWeightings(componentWeightingsSEXP);
+    rcpp_result_gen = Rcpp::wrap(bacHY(component, ETF, missingComponent, missingETF, componentWeightings));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_highfrequency_har_agg", (DL_FUNC) &_highfrequency_har_agg, 3},
@@ -373,7 +409,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_highfrequency_DriftBurstLoopC", (DL_FUNC) &_highfrequency_DriftBurstLoopC, 8},
     {"_highfrequency_DriftBurstLoopCPAR", (DL_FUNC) &_highfrequency_DriftBurstLoopCPAR, 9},
     {"_highfrequency_colCumsum", (DL_FUNC) &_highfrequency_colCumsum, 1},
-    {"_highfrequency_refreshTimeMathing", (DL_FUNC) &_highfrequency_refreshTimeMathing, 2},
+    {"_highfrequency_refreshTimeMatching", (DL_FUNC) &_highfrequency_refreshTimeMatching, 2},
     {"_highfrequency_preAveragingReturnsInternal", (DL_FUNC) &_highfrequency_preAveragingReturnsInternal, 2},
     {"_highfrequency_findFirst", (DL_FUNC) &_highfrequency_findFirst, 2},
     {"_highfrequency_overlap", (DL_FUNC) &_highfrequency_overlap, 4},
@@ -383,13 +419,16 @@ static const R_CallMethodDef CallEntries[] = {
     {"_highfrequency_rollApplyMinWrapper", (DL_FUNC) &_highfrequency_rollApplyMinWrapper, 1},
     {"_highfrequency_rollApplyMedianWrapper", (DL_FUNC) &_highfrequency_rollApplyMedianWrapper, 1},
     {"_highfrequency_rollApplyProdWrapper", (DL_FUNC) &_highfrequency_rollApplyProdWrapper, 2},
+    {"_highfrequency_tickGrouping_RETURNS", (DL_FUNC) &_highfrequency_tickGrouping_RETURNS, 2},
     {"_highfrequency_leadLagCpp", (DL_FUNC) &_highfrequency_leadLagCpp, 6},
     {"_highfrequency_leadLagCppPAR", (DL_FUNC) &_highfrequency_leadLagCppPAR, 7},
     {"_highfrequency_nsmaller", (DL_FUNC) &_highfrequency_nsmaller, 5},
     {"_highfrequency_KK", (DL_FUNC) &_highfrequency_KK, 2},
     {"_highfrequency_kernelEstimator", (DL_FUNC) &_highfrequency_kernelEstimator, 8},
-    {"_highfrequency_rv", (DL_FUNC) &_highfrequency_rv, 7},
     {"_highfrequency_pcovcc", (DL_FUNC) &_highfrequency_pcovcc, 10},
+    {"_highfrequency_bacImpliedBetaHYCpp", (DL_FUNC) &_highfrequency_bacImpliedBetaHYCpp, 3},
+    {"_highfrequency_bacImpliedBetaCpp", (DL_FUNC) &_highfrequency_bacImpliedBetaCpp, 3},
+    {"_highfrequency_bacHY", (DL_FUNC) &_highfrequency_bacHY, 5},
     {NULL, NULL, 0}
 };
 

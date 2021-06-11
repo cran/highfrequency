@@ -10,7 +10,8 @@ rAVGCov(
   alignBy = "minutes",
   alignPeriod = 5,
   k = 1,
-  makeReturns = FALSE
+  makeReturns = FALSE,
+  ...
 )
 }
 \arguments{
@@ -18,7 +19,8 @@ rAVGCov(
 
 \item{cor}{boolean, in case it is \code{TRUE}, and the input data is multivariate, the correlation is returned instead of the covariance matrix. \code{FALSE} by default.}
 
-\item{alignBy}{character, indicating the time scale in which \code{alignPeriod} is expressed. Possible values are: \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}}
+\item{alignBy}{character, indicating the time scale in which \code{alignPeriod} is expressed. 
+Possible values are: \code{"ticks"}, \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}}
 
 \item{alignPeriod}{positive numeric, indicating the number of periods to aggregate over. For example, to aggregate
 based on a 5-minute frequency, set \code{alignPeriod = 5} and \code{alignBy = "minutes"}.}
@@ -26,6 +28,8 @@ based on a 5-minute frequency, set \code{alignPeriod = 5} and \code{alignBy = "m
 \item{k}{numeric denoting which horizon to use for the subsambles. This can be a fraction as long as \eqn{k} is a divisor of \code{alignPeriod} default is \code{1}.}
 
 \item{makeReturns}{boolean, should be \code{TRUE} when \code{rData} contains prices instead of returns. \code{FALSE} by default.}
+
+\item{...}{used internally, do not change.}
 }
 \value{
 in case the input is and contains data from one day, an \eqn{N} by \eqn{N} matrix is returned. If the data is a univariate \code{xts} object with multiple days, an \code{xts} is returned.
@@ -67,12 +71,14 @@ rvAvgSub
 # Multivariate subsampled realized variance
 rvAvgCovSub <- rAVGCov(rData = sampleOneMinuteData[1:391], makeReturns = TRUE)
 rvAvgCovSub
-
 }
 \references{
 Liu, L. Y., Patton, A. J., Sheppard, K. (2015). Does anything beat 5-minute RV? A comparison of realized measures across multiple asset classes. \emph{Journal of Econometrics}, 187, 293-311.
 
 Zhang, L., Mykland, P. A. , and Ait-Sahalia, Y. (2005). A tale of two time scales: Determining integrated volatility with noisy high-frequency data. \emph{Journal of the American Statistical Association}, 100, 1394-1411.
+}
+\seealso{
+\code{\link{ICov}} for a list of implemented estimators of the integrated covariance.
 }
 \author{
 Scott Payseur, Onno Kleen, and Emil Sjoerup.

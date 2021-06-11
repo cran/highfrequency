@@ -10,7 +10,8 @@ rBPCov(
   alignBy = NULL,
   alignPeriod = NULL,
   makeReturns = FALSE,
-  makePsd = FALSE
+  makePsd = FALSE,
+  ...
 )
 }
 \arguments{
@@ -18,7 +19,8 @@ rBPCov(
 
 \item{cor}{boolean, in case it is \code{TRUE}, and the input data is multivariate, the correlation is returned instead of the covariance matrix. \code{FALSE} by default.}
 
-\item{alignBy}{character, indicating the time scale in which \code{alignPeriod} is expressed. Possible values are: \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}}
+\item{alignBy}{character, indicating the time scale in which \code{alignPeriod} is expressed. 
+Possible values are: \code{"ticks"}, \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}}
 
 \item{alignPeriod}{positive numeric, indicating the number of periods to aggregate over. E.g. to aggregate
 based on a 5-minute frequency, set \code{alignPeriod} to 5 and \code{alignBy} to \code{"minutes"}.}
@@ -26,6 +28,8 @@ based on a 5-minute frequency, set \code{alignPeriod} to 5 and \code{alignBy} to
 \item{makeReturns}{boolean, should be \code{TRUE} when \code{rData} contains prices instead of returns. \code{FALSE} by default.}
 
 \item{makePsd}{boolean, in case it is \code{TRUE}, the positive definite version of rBPCov is returned. \code{FALSE} by default.}
+
+\item{...}{used internally, do not change.}
 }
 \value{
 in case the input is and contains data from one day, an \eqn{N} by \eqn{N} matrix is returned. If the data is a univariate \code{xts} object with multiple days, an \code{xts} is returned.
@@ -60,10 +64,12 @@ rbpv <- rBPCov(rData = sampleTData[, list(DT, PRICE)], alignBy ="minutes",
 # Multivariate:
 rbpc <- rBPCov(rData = sampleOneMinuteData, makeReturns = TRUE, makePsd = TRUE)
 rbpc
-
 }
 \references{
 Barndorff-Nielsen, O. E., and Shephard, N. (2004). Measuring the impact of jumps in multivariate price processes using bipower covariation. Discussion paper, Nuffield College, Oxford University.
+}
+\seealso{
+\code{\link{ICov}} for a list of implemented estimators of the integrated covariance.
 }
 \author{
 Jonathan Cornelissen, Kris Boudt, and Emil Sjoerup.

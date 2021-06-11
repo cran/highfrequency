@@ -37,6 +37,7 @@ test_that("HARModel",{
   expect_equal(info$call, "RV1 = beta0  +  beta1 * RV1 +  beta2 * RV5 +  beta3 * RV22")
   ## Testing with BPQ's data 
   expect_equal(model$coefficients, c("(Intercept)" = 1.160000921e-05 ,"RV1" = 2.953165771e-01,"RV5" = 2.813334173e-01, "RV22" = 1.471632893e-01 ))
+  expect_output(print(model), NULL)
   
   model <- HARmodel(as.xts(SPYRM[, list(DT, RV5, RQ5)]), type = "HARQ")
   expect_equal(model$coefficients, c("(Intercept)" = 3.285615865e-06, "RV1" = 9.754440119e-01, "RV5" = 7.909932136e-03, "RV22" = 2.366579823e-02, "RQ1" = -3.881445184e-01 ))
@@ -58,6 +59,18 @@ test_that("HARModel",{
   
   model <- HARmodel(as.xts(SPYRM[1:1000 , list(DT, RV5)]))
   expect_equal(predict(model), sum(coefficients(model) * tail(cbind(1, model$model[,-1]),1)))
+  
+  model <- HARmodel(as.xts(SPYRM[1:1000 , list(DT, RV5)]), transform = "sqrt")
+  expect_equal(predict(model, backtransform = "simple"), (sum(coefficients(model) * tail(cbind(1, model$model[,-1]),1))^2))
+
+  testStats <- sqrt(390) * (SPYRM$RV1 - SPYRM$BPV1)/sqrt((pi^2/4+pi-3 - 2) * SPYRM$medRQ1) ## BNSJumptest
+  model <- HARmodel(cbind(as.xts(SPYRM[, list(DT, RV5, BPV5)]), testStats), type = "HARCJ")
+  
+  expect_equal(sum(summary(model)[[4]][,2]), 5.145151472487521)
+  
+  dat <- as.xts(sampleOneMinuteData[, makeReturns(STOCK), by = list(DATE = as.Date(DT))])
+  x <- HARmodel(dat, periods = c(1,3), RVest = c("rCov"), type="HAR", inputType = "returns", leverage = c(1,3))
+  expect_equal(sum(coef(x)), 0.5175878)
   
 })
 
@@ -88,4 +101,8 @@ test_that("HEAVYmodel",{
   uncondVar <- as.numeric((coeffs[1] + coeffs[2] * uncondRM) / (1 - coeffs[3]))
   expect_equal(as.numeric(round(predict(output, stepsAhead = 400)[400,], 4)),
                round(c(uncondVar, uncondRM), 4))
+  
+  
+  expect_output(print(output), NULL)
+  
 })

@@ -63,7 +63,7 @@ ABDJumptest <- function(RV, BPV, TQ) { # Compute jump detection stat mentioned i
 #' @param p can be chosen among 2 or 3 or 4. The author suggests 4. 4 by default.
 #' @param k can be chosen among 2 or 3 or 4. The author suggests 2. 2 by default.
 #' @param alignBy character, indicating the time scale in which \code{alignPeriod} is expressed. 
-#' Possible values are: \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}.
+#' Possible values are: \code{"ticks"}, \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}
 #' To aggregate based on a 5 minute frequency, set \code{alignPeriod} to 5 and \code{alignBy} to "minutes".
 #' @param alignPeriod positive numeric, indicating the number of periods to aggregate over. For example, to aggregate
 #' based on a 5 minute frequency, set \code{alignPeriod = 5} and \code{alignBy = "minutes"}.
@@ -188,10 +188,9 @@ AJjumpTest <- function(pData, p = 4 , k = 2, alignBy = NULL, alignPeriod = NULL,
   ## AJ test: 
   AJtest <- (S-k^(p/2-1))/sqrt(calculateV(rse, p, k, N))
 
-  out <- {}
-  out$ztest <- AJtest
-  out$critical.value <- qnorm(c(1- alpha, alpha))
-  out$pvalue <- 2 * pnorm(-abs(AJtest))
+  out <- list("ztest" = AJtest,
+              "critical.value" = qnorm(c(1- alpha, alpha)),
+                "pvalue" = 2 * pnorm(-abs(AJtest)))
   return(out)
 }
 
@@ -202,15 +201,15 @@ AJjumpTest <- function(pData, p = 4 , k = 2, alignBy = NULL, alignPeriod = NULL,
 #' 
 #' @param rData either an \code{xts} or a \code{data.table} containing the log-returns or prices of a single asset, possibly over multiple days-
 #' @param IVestimator can be chosen among jump robust integrated variance estimators: 
-#' \code{\link{rBPCov}}, \code{\link{rMinRV}}, \code{\link{rMedRV}} and corrected threshold bipower variation (\code{\link{rThresholdCov}}). 
+#' \code{\link{rBPCov}}, \code{\link{rMinRVar}}, \code{\link{rMedRVar}}, \code{\link{rOWCov}} and corrected threshold bipower variation (\code{\link{rThresholdCov}}). 
 #' If \code{\link{rThresholdCov}} is chosen, an argument of \code{startV}, start point of auxiliary estimators in threshold estimation can be included. \code{\link{rBPCov}} by default.
-#' @param IQestimator can be chosen among jump robust integrated quarticity estimators: \code{\link{rTPQuar}}, \code{\link{rQPVar}}, \code{\link{rMinRQ}} and \code{\link{rMedRQ}}. 
+#' @param IQestimator can be chosen among jump robust integrated quarticity estimators: \code{\link{rTPQuar}}, \code{\link{rQPVar}}, \code{\link{rMinRQuar}} and \code{\link{rMedRQuar}}. 
 #' \code{\link{rTPQuar}} by default.
 #' @param type a method of BNS testing: can be linear or ratio. Linear by default.
 #' @param logTransform boolean, should be \code{TRUE} when \code{QVestimator} and \code{IVestimator} are in logarithm form. \code{FALSE} by default.
 #' @param max boolean, should be \code{TRUE} when max adjustment in SE. \code{FALSE} by default.
 #' @param alignBy character, indicating the time scale in which \code{alignPeriod} is expressed. 
-#' Possible values are: \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}.
+#' Possible values are: \code{"ticks"}, \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}
 #' To aggregate based on a 5 minute frequency, set \code{alignPeriod = 5} and \code{alignBy = "minutes"}.
 #' @param alignPeriod positive numeric, indicating the number of periods to aggregate over. For example, to aggregate
 #' based on a 5 minute frequency, set \code{alignPeriod = 5} and \code{alignBy = "minutes"}.
@@ -262,8 +261,8 @@ AJjumpTest <- function(pData, p = 4 , k = 2, alignBy = NULL, alignPeriod = NULL,
 #' @author Giang Nguyen, Jonathan Cornelissen, Kris Boudt, and Emil Sjoerup.
 #' 
 #' @examples 
-#' bns <- BNSjumpTest(sampleTData[, list(DT, PRICE)], IVestimator= "rMinRV",
-#'                    IQestimator = "rMedRQ", type= "linear", makeReturns = TRUE)
+#' bns <- BNSjumpTest(sampleTData[, list(DT, PRICE)], IVestimator= "rMinRVar",
+#'                    IQestimator = "rMedRQuar", type= "linear", makeReturns = TRUE)
 #' bns
 #' 
 #' @keywords highfrequency BNSjumpTest
@@ -282,16 +281,11 @@ BNSjumpTest <- function (rData, IVestimator = "BV", IQestimator = "TP", type = "
                     return(cbind(tmp[[1]], tmp[[2]][1], tmp[[2]][2], tmp[[3]]))
                   })
     
-    # browser()
     colnames(result) <- c("ztest", "lower", "upper", "p-value")
     
     universalThreshold <- 2 * pnorm(-sqrt(log(ndays(result$ztest) * 2)))
     result$universalThresholdLower <- qnorm(universalThreshold)
     result$universalThresholdUpper <- -qnorm(universalThreshold)
-    
-    # p.adjust(as.numeric(result$`p-value`), "fdr")
-    # qnorm(p.adjust(as.numeric(result$`p-value`), "fdr"))
-    # result$ztest
     
     return(result)
   } else if (is.data.table(rData)){
@@ -330,23 +324,20 @@ BNSjumpTest <- function (rData, IVestimator = "BV", IQestimator = "TP", type = "
       rData <- makeReturns(rData)
     }
     N <- length(rData)
-    hatQV <- RV(rData)
-    hatIV <- hatIV(rData, IVestimator)
     theta <- tt(IVestimator)
-    hatIQ <- hatIQ(rData, IQestimator)
     if (type == "linear") {
       if (logTransform) {
-        hatQV <- log(RV(rData))
+        hatQV <- log(rRVar(rData))
         hatIV <- log(hatIV(rData, IVestimator))
       }
-      if (!logTransform) {
-        hatQV <- RV(rData)
+      else {
+        hatQV <- rRVar(rData)
         hatIV <- hatIV(rData, IVestimator)
       }
       if (max) {
         product <- max(1, hatIQ(rData, IQestimator)/hatIV(rData, IVestimator)^2)
       }
-      if (!max) {
+      else {
         product <- hatIQ(rData, IQestimator)
       }
       a <- sqrt(N) * (hatQV - hatIV)/sqrt((theta - 2) * product)
@@ -360,10 +351,11 @@ BNSjumpTest <- function (rData, IVestimator = "BV", IQestimator = "TP", type = "
       if (max) {
         product <- max(1, hatIQ(rData, IQestimator)/hatIV(rData, IVestimator)^2)
       }
-      if (!max) {
+      else {
         product <- hatIQ(rData, IQestimator)/hatIV(rData, IVestimator)^2
       }
-      a <- sqrt(N) * (1 - hatIV(rData, IVestimator, N)/RV(rData))/sqrt((theta - 2) * product)
+      
+      a <- sqrt(N) * (1 - hatIV(rData, IVestimator, N)/rRVar(rData))/sqrt((theta - 2) * product)
       out <- list()
       out$ztest <- a
       out$critical.value <- qnorm(c(1- alpha, alpha))
@@ -411,8 +403,8 @@ BNSjumpTest <- function (rData, IVestimator = "BV", IQestimator = "TP", type = "
 #'  
 #' @param pData a zoo/xts object containing all prices in period t for one asset.
 #' @param power can be chosen among 4 or 6. 4 by default.
-#' @param alignBy character, indicating the time scale in which \code{alignPeriod} is expressed. Possible values are: "secs", "seconds", "mins", "minutes","hours".
-#' To aggregate based on a 5 minute frequency, set \code{alignPeriod} to 5 and \code{alignBy} to "minutes".
+#' @param alignBy character, indicating the time scale in which \code{alignPeriod} is expressed. 
+#' Possible values are: \code{"ticks"}, \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}
 #' @param alignPeriod positive numeric, indicating the number of periods to aggregate over. E.g. to aggregate
 #' based on a 5 minute frequency, set \code{alignPeriod} to 5 and \code{alignBy} to "minutes".
 #' @param alpha numeric of length one with the significance level to use for the jump test(s). Defaults to 0.975.
@@ -495,7 +487,8 @@ JOjumpTest <- function(pData, power = 4, alignBy = NULL, alignPeriod = NULL, alp
     r  <- as.zoo(makeReturns(pData))
     N  <- length(pData) - 1
     bv <- RBPVar(r)
-    rv <- RV(r)
+    rv <- rRVar(r)
+    rv <- rv[[length(rv)]]
   
     SwV <- 2 * sum(R-r, na.rm = TRUE)
     mu1 <- 2^(6/2) * gamma(1/2*(6+1)) / gamma(1/2)
@@ -519,7 +512,7 @@ JOjumpTest <- function(pData, power = 4, alignBy = NULL, alignPeriod = NULL, alp
       
       q <- abs(rollApplyProdWrapper(r, 6))
       mu2 <- 2^((6/6)/2)*gamma(1/2*(6/6+1))/gamma(1/2)
-      av <- mu1/9 * N^3*(mu2)^(-6)/(N-6-1)*sum(q^(6/6),na.rm= TRUE)   ##check formula
+      av <- mu1/9 * N^3*(mu2)^(-6)/(N-6-1)*sum(q,na.rm= TRUE)   ##check formula
       JOtest <- N*bv/sqrt(av)*(1- rv/SwV)
   
       out                <- {}
@@ -541,12 +534,12 @@ JOjumpTest <- function(pData, power = 4, alignBy = NULL, alignPeriod = NULL, alp
 #' 
 #' See \code{\link{spotVol}} and \code{\link{spotDrift}} for Estimators for \eqn{\sigma(t)} and \eqn{\mu(t)}, respectively.
 #' 
-#' @param pData \code{xts}or data.table of the price data in levels. This data can (and should in some cases) be tick-level data. The data can span more than one day.
+#' @param pData \code{xts} or \code{data.table} of the price data in levels. This data can (and should in some cases) be tick-level data. The data can span more than one day. Should only contain a sinlge \code{SYMBOL}
 #' @param volEstimator character denoting which volatility estimator to use for the tests. See \code{\link{spotVol}}. Default = \code{"RM"} denoting realized measures.
 #' @param driftEstimator character denoting which drift estimator to use for the tests. See \code{\link{spotDrift}}. Default = \code{"none"} denoting no drift estimation.
 #' @param alpha numeric of length one determining what confidence level to use when constructing the critical values.
-#' @param alignBy string indicating the time scale in which \code{alignPeriod} is expressed.
-#' Possible values are: \code{"secs", "seconds", "mins", "minutes", "hours"}.
+#' @param alignBy character, indicating the time scale in which \code{alignPeriod} is expressed. 
+#' Possible values are: \code{"ticks"}, \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}
 #' @param alignPeriod positive numeric, indicating the number of periods to aggregate over. E.g. to aggregate
 #' based on a 5 minute frequency, set \code{alignPeriod} to 5 and \code{alignBy} to "minutes".
 #' \code{alignPeriod = 5} and \code{alignBy = "minutes"}.
@@ -556,22 +549,20 @@ JOjumpTest <- function(pData, power = 4, alignBy = NULL, alignPeriod = NULL, alp
 #' specified by \code{tz}. By default, \code{marketClose = "16:00:00"}.
 #' @param tz fallback time zone used in case we we are unable to identify the timezone of the data, by default: \code{tz = NULL}. We attempt to extract the timezone from the DT column (or index) of the data, which may fail. 
 #' In case of failure we use \code{tz} if specified, and if it is not specified, we use \code{"UTC"}
+#' @param n number of observation to use in the calculation of the critical values of the test statistic. If this is left as \code{NULL} we fall back to the total number of observations in the sample.
 #' @param ... extra arguments passed on to \code{\link{spotVol}} for the volatility estimation, and to \code{\link{spotDrift}}.
 #' 
 #' The null hypothesis of the tests in this function is that there are no jumps in the price series
 #' 
 #' @references 
-#' 
 #' Christensen, K., Oomen, R. C. A., Podolskij, M. (2014): Fact or Friction: Jumps at ultra high frequency. \emph{Journal of Financial Economics}, 144, 576-599
-#' 
-#' 
 #' 
 #' @examples 
 #' \dontrun{
 #' # We can easily make a Lee-Mykland jump test.
 #' LMtest <- intradayJumpTest(pData = sampleTData[, list(DT, PRICE)], 
 #'                            volEstimator = "RM", driftEstimator = "none",
-#'                            RM = "bipower", lookBackPeriod = 20,
+#'                            RM = "rBPCov", lookBackPeriod = 20,
 #'                            alignBy = "minutes", alignPeriod = 5, marketOpen = "09:30:00", 
 #'                            marketClose = "16:00:00")
 #' plot(LMtest)
@@ -579,7 +570,7 @@ JOjumpTest <- function(pData, power = 4, alignBy = NULL, alignPeriod = NULL, alp
 #' # We can just as easily use the pre-averaged version from the "Fact or Friction" paper
 #' FoFtest <- intradayJumpTest(pData = sampleTData[, list(DT, PRICE)], 
 #'                             volEstimator = "PARM", driftEstimator = "none",
-#'                             RM = "bipower", lookBackPeriod = 20, theta = 1.2,
+#'                             RM = "rBPCov", lookBackPeriod = 20, theta = 1.2,
 #'                             marketOpen = "09:30:00", marketClose = "16:00:00")
 #' plot(FoFtest)
 #' 
@@ -589,9 +580,9 @@ JOjumpTest <- function(pData, power = 4, alignBy = NULL, alignPeriod = NULL, alp
 #' @export
 
 intradayJumpTest <- function(pData, volEstimator = "RM", driftEstimator = "none", alpha = 0.95, alignBy = "minutes", alignPeriod = 5,
-                             marketOpen = "09:30:00", marketClose = "16:00:00", tz = NULL, ...){
+                             marketOpen = "09:30:00", marketClose = "16:00:00", tz = NULL, n = NULL, ...){
 
-  PRICE = DATE = RETURN = DT = NULL
+  .N <- PRICE <- DATE <- RETURN <- DT <- NULL
   
   if (!("PRICE" %in% colnames(pData))) {
     if (dim(pData)[2] == 1) {
@@ -616,22 +607,32 @@ intradayJumpTest <- function(pData, volEstimator = "RM", driftEstimator = "none"
     }
   }
   
-  D <- ndays(pData)
-  isMultiDay <- FALSE
-  if (D > 1) {
-    isMultiDay <- TRUE
-  } 
+  timeZone <- format(pData$DT[1], format = "%Z")
+  if(is.null(timeZone) || timeZone == ""){
+    if(is.null(tz)){
+      tz <- "UTC"
+    }
+    if(!("POSIXct" %in% class(pData$DT))){
+      pData[, DT := as.POSIXct(format(DT, digits = 20, nsmall = 20), tz = tz)]
+    }
+  } else {
+    tz <- timeZone
+  }
+  dates <- pData[, last(DATE), by =list(DATE = as.Date(DT, tz = tz))][[1]]
+  D <- length(dates)
+  
+  
   
   vol <- spotVol(pData, method = volEstimator, alignBy = alignBy, alignPeriod = alignPeriod, marketOpen = marketOpen, marketClose = marketClose, tz = tz, ...)
 
   if (volEstimator == "RM") {
     
-    op <- list(RM = "bipower", lookBackPeriod = 10)
+    op <- list(RM = "rBPCov", lookBackPeriod = 10)
     options <- list(...)
     op[names(options)] <- options
     
     #vol$spot <- lag(vol$spot)
-    # if(op$RM == "bipower"){
+    # if(op$RM == "rBPCov"){
     #   vol$spot <- sqrt((vol$spot^2  / (pi/2))) 
     # }
     
@@ -647,17 +648,12 @@ intradayJumpTest <- function(pData, volEstimator = "RM", driftEstimator = "none"
   } else { # volEstimator == "PARM" i.e. we have pre-averaged realized measures
     nObs <- length(pData$PRICE)
     
-    op <- list(RM = "bipower", lookBackPeriod = 50)
+    op <- list(RM = "rBPCov", lookBackPeriod = 50)
     options <- list(...)
     op[names(options)] <- options
     
-    if (isMultiDay) {
-      dates <- NULL 
-      if(is.data.table(pData)){
-        dates <- unique(as.Date(pData$DT, tz = tz))
-      } else {
-        dates <- unique(as.Date(index(pData), tz = tz))
-      }
+    if (D > 1) { ##TODO: see if this can be simplified
+
       
       preAveragedReturns <- testingIndices <- c()
       
@@ -671,7 +667,7 @@ intradayJumpTest <- function(pData, volEstimator = "RM", driftEstimator = "none"
         preAveragedReturns <- c(preAveragedReturns, c(as.numeric(hatreturn(as.xts(pData[as.Date(pData$DT, tz = tz) == dates[d]])$PRICE, vol$kn[d])), rep(NA, vol$kn[d] - 2)))
       }
       
-      returns <- pData[, RETURN := preAveragedReturns][testingIndices, "RETURN"]
+      returns <- pData[, RETURN := preAveragedReturns][testingIndices, ]
       
     } else {
       testingIndices <- seq(op$lookBackPeriod - 2 + vol$kn +1, nObs-vol$kn, by = vol$kn)
@@ -697,14 +693,19 @@ intradayJumpTest <- function(pData, volEstimator = "RM", driftEstimator = "none"
     drift <- 0
   }
   
-  vol$spot <- sqrt(vol$spot^2  * 1/(op$lookBackPeriod-2))
+  vol$spot <- sqrt((vol$spot^2)/(op$lookBackPeriod-2))
   
   tests <- (returns$RETURN - drift)/(vol$spot)
   
   tests[is.infinite(tests)] <- NA
   # Calculating the critical value of the test.
   const <- 0.7978846 # = sqrt(2/pi)
-  n <- nrow(returns) / D
+  
+  
+  
+
+  if(is.null(n)){n <- NROW(pData)}
+  
   Cn <- sqrt(2 * log(n))/const - (log(pi) + log( log(n) ))/(2 * const*sqrt((2 * log(n))))
   Sn <- 1/sqrt(const * 2 * log(n))
   betastar <- -log(-log(1-alpha))
@@ -718,7 +719,7 @@ intradayJumpTest <- function(pData, volEstimator = "RM", driftEstimator = "none"
   
   
   out <- list("ztest" = tests, "vol" = vol,  "drift" = drift, "criticalValue" = criticalValue, 
-              "pData" = pData, "prices" = prices, "isMultiDay" = isMultiDay)
+              "pData" = pData, "prices" = prices, "isMultiDay" = D > 1)
   class(out) <- c( "intradayJumpTest", "list")
   
   # testingTimes <- trimws(gsub("1970-01-01", "", index(vol$spot)))
@@ -1052,12 +1053,14 @@ rankJumpTest <- function(marketPrice, stockPrices, alpha = c(5,3), coarseFreq = 
   }
   
   jumps <- t(jumps) # Transpose here so we don't have to transpose every time in the loop.
-  
-  if(dim(jumps) == c(1,1)){
+  if(all(dim(jumps) == c(1,1))){
     stop("Singular value decomposition cannot be calculated")
   }
   # Set nu and nv because we need full SVD (see https://stackoverflow.com/questions/41972419/different-svd-result-in-rank-and-matlab)
   decomp <- svd(jumps, nu = nrow(jumps), nv = ncol(jumps))
+  if(all(dim(decomp$u) == c(1,1))){
+    stop("Singular value decomposition cannot be calculated")
+  }
   U2 <- decomp$u[, (rank+1):ncol(decomp$u)]
   V2 <- decomp$v[, (rank+1):ncol(decomp$v)]
   

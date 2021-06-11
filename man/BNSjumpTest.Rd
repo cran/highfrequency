@@ -21,10 +21,10 @@ BNSjumpTest(
 \item{rData}{either an \code{xts} or a \code{data.table} containing the log-returns or prices of a single asset, possibly over multiple days-}
 
 \item{IVestimator}{can be chosen among jump robust integrated variance estimators: 
-\code{\link{rBPCov}}, \code{\link{rMinRV}}, \code{\link{rMedRV}} and corrected threshold bipower variation (\code{\link{rThresholdCov}}). 
+\code{\link{rBPCov}}, \code{\link{rMinRVar}}, \code{\link{rMedRVar}}, \code{\link{rOWCov}} and corrected threshold bipower variation (\code{\link{rThresholdCov}}). 
 If \code{\link{rThresholdCov}} is chosen, an argument of \code{startV}, start point of auxiliary estimators in threshold estimation can be included. \code{\link{rBPCov}} by default.}
 
-\item{IQestimator}{can be chosen among jump robust integrated quarticity estimators: \code{\link{rTPQuar}}, \code{\link{rQPVar}}, \code{\link{rMinRQ}} and \code{\link{rMedRQ}}. 
+\item{IQestimator}{can be chosen among jump robust integrated quarticity estimators: \code{\link{rTPQuar}}, \code{\link{rQPVar}}, \code{\link{rMinRQuar}} and \code{\link{rMedRQuar}}. 
 \code{\link{rTPQuar}} by default.}
 
 \item{type}{a method of BNS testing: can be linear or ratio. Linear by default.}
@@ -34,7 +34,7 @@ If \code{\link{rThresholdCov}} is chosen, an argument of \code{startV}, start po
 \item{max}{boolean, should be \code{TRUE} when max adjustment in SE. \code{FALSE} by default.}
 
 \item{alignBy}{character, indicating the time scale in which \code{alignPeriod} is expressed. 
-Possible values are: \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}.
+Possible values are: \code{"ticks"}, \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}
 To aggregate based on a 5 minute frequency, set \code{alignPeriod = 5} and \code{alignBy = "minutes"}.}
 
 \item{alignPeriod}{positive numeric, indicating the number of periods to aggregate over. For example, to aggregate
@@ -83,8 +83,8 @@ Since the realized volatility converges to the sum of integrated variance and ju
 it follows that the difference between \code{RV} and the \code{IVestimator} captures the jump part only, and this observation underlines the BNS test for jumps (Theodosiou and Zikes, 2009).
 }
 \examples{
-bns <- BNSjumpTest(sampleTData[, list(DT, PRICE)], IVestimator= "rMinRV",
-                   IQestimator = "rMedRQ", type= "linear", makeReturns = TRUE)
+bns <- BNSjumpTest(sampleTData[, list(DT, PRICE)], IVestimator= "rMinRVar",
+                   IQestimator = "rMedRQuar", type= "linear", makeReturns = TRUE)
 bns
 
 }

@@ -14,11 +14,12 @@ intradayJumpTest(
   marketOpen = "09:30:00",
   marketClose = "16:00:00",
   tz = NULL,
+  n = NULL,
   ...
 )
 }
 \arguments{
-\item{pData}{\code{xts}or data.table of the price data in levels. This data can (and should in some cases) be tick-level data. The data can span more than one day.}
+\item{pData}{\code{xts} or \code{data.table} of the price data in levels. This data can (and should in some cases) be tick-level data. The data can span more than one day. Should only contain a sinlge \code{SYMBOL}}
 
 \item{volEstimator}{character denoting which volatility estimator to use for the tests. See \code{\link{spotVol}}. Default = \code{"RM"} denoting realized measures.}
 
@@ -26,8 +27,8 @@ intradayJumpTest(
 
 \item{alpha}{numeric of length one determining what confidence level to use when constructing the critical values.}
 
-\item{alignBy}{string indicating the time scale in which \code{alignPeriod} is expressed.
-Possible values are: \code{"secs", "seconds", "mins", "minutes", "hours"}.}
+\item{alignBy}{character, indicating the time scale in which \code{alignPeriod} is expressed. 
+Possible values are: \code{"ticks"}, \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}}
 
 \item{alignPeriod}{positive numeric, indicating the number of periods to aggregate over. E.g. to aggregate
 based on a 5 minute frequency, set \code{alignPeriod} to 5 and \code{alignBy} to "minutes".
@@ -41,6 +42,8 @@ specified by \code{tz}. By default, \code{marketClose = "16:00:00"}.}
 
 \item{tz}{fallback time zone used in case we we are unable to identify the timezone of the data, by default: \code{tz = NULL}. We attempt to extract the timezone from the DT column (or index) of the data, which may fail. 
 In case of failure we use \code{tz} if specified, and if it is not specified, we use \code{"UTC"}}
+
+\item{n}{number of observation to use in the calculation of the critical values of the test statistic. If this is left as \code{NULL} we fall back to the total number of observations in the sample.}
 
 \item{...}{extra arguments passed on to \code{\link{spotVol}} for the volatility estimation, and to \code{\link{spotDrift}}.
 
@@ -58,7 +61,7 @@ See \code{\link{spotVol}} and \code{\link{spotDrift}} for Estimators for \eqn{\s
 # We can easily make a Lee-Mykland jump test.
 LMtest <- intradayJumpTest(pData = sampleTData[, list(DT, PRICE)], 
                            volEstimator = "RM", driftEstimator = "none",
-                           RM = "bipower", lookBackPeriod = 20,
+                           RM = "rBPCov", lookBackPeriod = 20,
                            alignBy = "minutes", alignPeriod = 5, marketOpen = "09:30:00", 
                            marketClose = "16:00:00")
 plot(LMtest)
@@ -66,7 +69,7 @@ plot(LMtest)
 # We can just as easily use the pre-averaged version from the "Fact or Friction" paper
 FoFtest <- intradayJumpTest(pData = sampleTData[, list(DT, PRICE)], 
                             volEstimator = "PARM", driftEstimator = "none",
-                            RM = "bipower", lookBackPeriod = 20, theta = 1.2,
+                            RM = "rBPCov", lookBackPeriod = 20, theta = 1.2,
                             marketOpen = "09:30:00", marketClose = "16:00:00")
 plot(FoFtest)
 

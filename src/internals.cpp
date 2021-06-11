@@ -20,7 +20,7 @@ arma::mat colCumsum(const arma::mat& x) {
 
 //' @keywords internal
 // [[Rcpp::export]]
-Rcpp::List refreshTimeMathing(const arma::mat& x, arma::vec& idx) {
+Rcpp::List refreshTimeMatching(const arma::mat& x, arma::vec& idx) {
   
   const uword N = x.n_rows;
   const uword D = x.n_cols;
@@ -213,4 +213,24 @@ arma::mat rollApplyProdWrapper(const arma::mat& x, int m){
   }
   return(out);
   
+}
+
+
+
+
+//[[Rcpp::export]]
+arma::vec tickGrouping_RETURNS(const int end, const int size){
+  arma::vec out = arma::zeros<vec>(end);
+  int grp = 1;
+  int cnt = 0;
+  
+  for (int i = size; i < end; i ++){
+    out(i) = grp;
+    cnt += 1;
+    if(cnt == size){
+      cnt = 0;
+      grp += 1;
+    }
+  }
+  return(out);
 }

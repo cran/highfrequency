@@ -7,12 +7,13 @@
 rKernelCov(
   rData,
   cor = FALSE,
-  alignBy = "seconds",
-  alignPeriod = 1,
+  alignBy = NULL,
+  alignPeriod = NULL,
   makeReturns = FALSE,
   kernelType = "rectangular",
   kernelParam = 1,
-  kernelDOFadj = TRUE
+  kernelDOFadj = TRUE,
+  ...
 )
 }
 \arguments{
@@ -22,7 +23,7 @@ rKernelCov(
 \code{FALSE} by default.}
 
 \item{alignBy}{character, indicating the time scale in which \code{alignPeriod} is expressed. 
-Possible values are: \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}.}
+Possible values are: \code{"ticks"}, \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}}
 
 \item{alignPeriod}{positive numeric, indicating the number of periods to aggregate over. 
 For example, to aggregate based on a 5-minute frequency, set \code{alignPeriod} to 5 and \code{alignBy} to \code{"minutes"}.}
@@ -34,6 +35,8 @@ For example, to aggregate based on a 5-minute frequency, set \code{alignPeriod} 
 \item{kernelParam}{Kernel parameter.}
 
 \item{kernelDOFadj}{Kernel degree of freedom adjustment.}
+
+\item{...}{used internally, do not change.}
 }
 \value{
 in case the input is and contains data from one day, an \eqn{N} by \eqn{N} matrix is returned. 
@@ -66,7 +69,6 @@ rvKernel
 # Multivariate:
 rcKernel <- rKernelCov(rData = sampleOneMinuteData, makeReturns = TRUE)
 rcKernel
-
 }
 \references{
 Barndorff-Nielsen, O. E., Hansen, P. R., Lunde, A., and Shephard, N. (2008). Designing realized kernels to measure the ex post variation of equity prices in the presence of noise. \emph{Econometrica}, 76, 1481-1536.
@@ -74,6 +76,9 @@ Barndorff-Nielsen, O. E., Hansen, P. R., Lunde, A., and Shephard, N. (2008). Des
 Hansen, P. and Lunde, A. (2006). Realized variance and market microstructure noise. \emph{Journal of Business and Economic Statistics}, 24, 127-218.
 
 Zhou., B. (1996). High-frequency data and volatility in foreign-exchange rates. \emph{Journal of Business & Economic Statistics}, 14, 45-52.
+}
+\seealso{
+\code{\link{ICov}} for a list of implemented estimators of the integrated covariance.
 }
 \author{
 Scott Payseur, Onno Kleen, and Emil Sjoerup.

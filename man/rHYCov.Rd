@@ -11,7 +11,8 @@ rHYCov(
   alignBy = "seconds",
   alignPeriod = 1,
   makeReturns = FALSE,
-  makePsd = TRUE
+  makePsd = TRUE,
+  ...
 )
 }
 \arguments{
@@ -21,7 +22,8 @@ rHYCov(
 
 \item{period}{Sampling period}
 
-\item{alignBy}{character, indicating the time scale in which \code{alignPeriod} is expressed. Possible values are: \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}}
+\item{alignBy}{character, indicating the time scale in which \code{alignPeriod} is expressed. 
+Possible values are: \code{"ticks"}, \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}}
 
 \item{alignPeriod}{positive numeric, indicating the number of periods to aggregate over. For example, to aggregate
 based on a 5-minute frequency, set \code{alignPeriod = 5} and \code{alignBy = "minutes"}.}
@@ -29,6 +31,8 @@ based on a 5-minute frequency, set \code{alignPeriod = 5} and \code{alignBy = "m
 \item{makeReturns}{boolean, should be \code{TRUE} when \code{rData} contains prices instead of returns. \code{FALSE} by default.}
 
 \item{makePsd}{boolean, in case it is \code{TRUE}, the positive definite version of rHYCov is returned. \code{FALSE} by default.}
+
+\item{...}{used internally. Do not set.}
 }
 \description{
 Calculates the Hayashi-Yoshida Covariance estimator
@@ -37,10 +41,12 @@ Calculates the Hayashi-Yoshida Covariance estimator
 library("xts")
 hy <- rHYCov(rData = as.xts(sampleOneMinuteData)["2001-08-05"],
              period = 5, alignBy = "minutes", alignPeriod = 5, makeReturns = TRUE)
-
 }
 \references{
 Hayashi, T. and Yoshida, N. (2005). On covariance estimation of non-synchronously observed diffusion processes. \emph{Bernoulli}, 11, 359-379.
+}
+\seealso{
+\code{\link{ICov}} for a list of implemented estimators of the integrated covariance.
 }
 \author{
 Scott Payseur and Emil Sjoerup.

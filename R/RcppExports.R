@@ -42,8 +42,8 @@ colCumsum <- function(x) {
 }
 
 #' @keywords internal
-refreshTimeMathing <- function(x, idx) {
-    .Call(`_highfrequency_refreshTimeMathing`, x, idx)
+refreshTimeMatching <- function(x, idx) {
+    .Call(`_highfrequency_refreshTimeMatching`, x, idx)
 }
 
 #' @keywords internal
@@ -83,6 +83,10 @@ rollApplyProdWrapper <- function(x, m) {
     .Call(`_highfrequency_rollApplyProdWrapper`, x, m)
 }
 
+tickGrouping_RETURNS <- function(end, size) {
+    .Call(`_highfrequency_tickGrouping_RETURNS`, end, size)
+}
+
 leadLagCpp <- function(x, timestampsX, y, timestampsY, lags, normalize) {
     .Call(`_highfrequency_leadLagCpp`, x, timestampsX, y, timestampsY, lags, normalize)
 }
@@ -103,11 +107,19 @@ kernelEstimator <- function(a, b, na, q, adj, type, ab, ab2) {
     .Call(`_highfrequency_kernelEstimator`, a, b, na, q, adj, type, ab, ab2)
 }
 
-rv <- function(a, b, na, period, tmpa, tmpb, tmpna) {
-    .Call(`_highfrequency_rv`, a, b, na, period, tmpa, tmpb, tmpna)
-}
-
 pcovcc <- function(a, ap, b, at, atp, bt, na, nap, nb, period) {
     .Call(`_highfrequency_pcovcc`, a, ap, b, at, atp, bt, na, nap, nb, period)
+}
+
+bacImpliedBetaHYCpp <- function(components, missings, componentWeights) {
+    .Call(`_highfrequency_bacImpliedBetaHYCpp`, components, missings, componentWeights)
+}
+
+bacImpliedBetaCpp <- function(components, missings, componentWeights) {
+    .Call(`_highfrequency_bacImpliedBetaCpp`, components, missings, componentWeights)
+}
+
+bacHY <- function(component, ETF, missingComponent, missingETF, componentWeightings) {
+    .Call(`_highfrequency_bacHY`, component, ETF, missingComponent, missingETF, componentWeightings)
 }
 

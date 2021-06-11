@@ -17,7 +17,8 @@ rSemiCov(
 
 \item{cor}{boolean, in case it is \code{TRUE}, and the input data is multivariate, the correlation is returned instead of the covariance matrix. \code{FALSE} by default.}
 
-\item{alignBy}{character, indicating the time scale in which \code{alignPeriod} is expressed. Possible values are: \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}}
+\item{alignBy}{character, indicating the time scale in which \code{alignPeriod} is expressed. 
+Possible values are: \code{"ticks"}, \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}}
 
 \item{alignPeriod}{positive numeric, indicating the number of periods to aggregate over. For example, to aggregate
 based on a 5-minute frequency, set \code{alignPeriod = 5} and \code{alignBy = "minutes"}.}
@@ -59,9 +60,9 @@ In the case that cor is \code{TRUE}, the mixed matrix will be an \eqn{N \times N
 # at 5 minutes.
 
 # Univariate:
-rSV = rSemiCov(rData = sampleTData[, list(DT, PRICE)], alignBy = "minutes",
+rSVar = rSemiCov(rData = sampleTData[, list(DT, PRICE)], alignBy = "minutes",
                    alignPeriod = 5, makeReturns = TRUE)
-rSV
+rSVar
 \dontrun{
 library("xts")
 # Multivariate multi day:
@@ -79,6 +80,9 @@ addLegend(lty = 1) # Add legend so we can distinguish the series.
 }
 \references{
 Bollerslev, T., Li, J., Patton, A. J., and Quaedvlieg, R. (2020). Realized semicovariances. \emph{Econometrica}, 88, 1515-1551.
+}
+\seealso{
+\code{\link{ICov}} for a list of implemented estimators of the integrated covariance.
 }
 \author{
 Emil Sjoerup.

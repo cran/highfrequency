@@ -9,7 +9,8 @@ rThresholdCov(
   cor = FALSE,
   alignBy = NULL,
   alignPeriod = NULL,
-  makeReturns = FALSE
+  makeReturns = FALSE,
+  ...
 )
 }
 \arguments{
@@ -18,13 +19,15 @@ rThresholdCov(
 \item{cor}{boolean, in case it is \code{TRUE}, and the input data is multivariate, the correlation is returned instead of the covariance matrix. \code{FALSE} by default.}
 
 \item{alignBy}{character, indicating the time scale in which \code{alignPeriod} is expressed. 
-Possible values are: \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}.}
+Possible values are: \code{"ticks"}, \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}}
 
 \item{alignPeriod}{positive numeric, indicating the number of periods to aggregate over. For example, to aggregate
 based on a 5-minute frequency, set \code{alignPeriod = 5} and \code{alignBy = "minutes"}.}
 
 \item{makeReturns}{boolean, should be \code{TRUE} when \code{rData} contains prices instead of returns. 
 \code{FALSE} by default.}
+
+\item{...}{used internally, do not change.}
 }
 \value{
 in case the input is and contains data from one day, an \eqn{N \times N} matrix is returned. If the data is a univariate \code{xts} object with multiple days, an \code{xts} is returned.
@@ -61,7 +64,6 @@ dat <- exp(cumsum(xts(dat, timestamps)))
 rcThreshold <- rThresholdCov(dat, alignBy = "minutes", alignPeriod = 1, makeReturns = TRUE)
 rcThreshold
 }
-
 }
 \references{
 Barndorff-Nielsen, O. and Shephard, N. (2004). Measuring the impact of jumps in multivariate price processes using bipower covariation. Discussion paper, Nuffield College, Oxford University.
@@ -69,6 +71,9 @@ Barndorff-Nielsen, O. and Shephard, N. (2004). Measuring the impact of jumps in 
 Jacod, J. and Todorov, V. (2009). Testing for common arrival of jumps in discretely-observed multidimensional processes. \emph{Annals of Statistics}, 37, 1792-1838.
 
 Mancini, C. and Gobbi, F. (2012). Identifying the Brownian covariation from the co-jumps given discrete observations. \emph{Econometric Theory}, 28, 249-273.
+}
+\seealso{
+\code{\link{ICov}} for a list of implemented estimators of the integrated covariance.
 }
 \author{
 Jonathan Cornelissen, Kris Boudt, and Emil Sjoerup.

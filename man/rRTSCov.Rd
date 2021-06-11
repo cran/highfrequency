@@ -16,7 +16,8 @@ rRTSCov(
   KVar = NULL,
   JVar = NULL,
   eta = 9,
-  makePsd = FALSE
+  makePsd = FALSE,
+  ...
 )
 }
 \arguments{
@@ -45,6 +46,8 @@ of stock \eqn{i} for day \eqn{t}.}
 
 \item{makePsd}{boolean, in case it is \code{TRUE}, the positive definite version of rRTSCov is returned. 
 \code{FALSE} by default.}
+
+\item{...}{used internally, do not change.}
 }
 \value{
 an \eqn{N \times N} matrix
@@ -118,7 +121,6 @@ rcRTS <- rRTSCov(pData = list(price1, price2))
 # Note: List of prices as input
 rcRTS
 }
-
 }
 \references{
 Boudt K. and Zhang, J. 2010. Jump robust two time scale covariance estimation and realized volatility budgets. Mimeo.
@@ -126,6 +128,9 @@ Boudt K. and Zhang, J. 2010. Jump robust two time scale covariance estimation an
 Harris, F., McInish, T., Shoesmith, G., and Wood, R. (1995). Cointegration, error correction, and price discovery on informationally linked security markets. \emph{Journal of Financial and Quantitative Analysis}, 30, 563-581.
 
 Zhang, L., Mykland, P. A., and Ait-Sahalia, Y. (2005). A tale of two time scales: Determining integrated volatility with noisy high-frequency data. \emph{Journal of the American Statistical Association}, 100, 1394-1411.
+}
+\seealso{
+\code{\link{ICov}} for a list of implemented estimators of the integrated covariance.
 }
 \author{
 Jonathan Cornelissen, Kris Boudt, and Emil Sjoerup.

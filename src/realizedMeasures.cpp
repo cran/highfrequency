@@ -1,5 +1,6 @@
-#include <Rcpp.h>
+#include <RcppArmadillo.h>
 using namespace Rcpp;
+using namespace arma;
 
 // [[Rcpp::export]]
 int nsmaller(IntegerVector times, IntegerVector lengths, int start, int end, int max) {
@@ -109,21 +110,21 @@ double kernelEstimator(NumericVector a, NumericVector b, int na, int q, int adj,
   return(ans);
 }
 
-// [[Rcpp::export]]
-double rv(NumericVector a, NumericVector b, int na, int period, NumericVector tmpa,  NumericVector tmpb, int tmpna) {
-  int j, k;
-  
-  double ans = 0;
-  
-  for (j = 0; j <= na-1; j++) {
-    tmpa[j / period] += a[j];
-    tmpb[j / period] += b[j];
-  }
-  for(k = 0; k < tmpna; k++) {
-    ans += tmpa[k] * tmpb[k];
-  }
-  return(ans);
-}
+// // [[Rcpp::export]]
+// double rv(NumericVector a, NumericVector b, int na, int period, NumericVector tmpa,  NumericVector tmpb, int tmpna) {
+//   int j, k;
+//   
+//   double ans = 0;
+//   
+//   for (j = 0; j <= na-1; j++) {
+//     tmpa[j / period] += a[j];
+//     tmpb[j / period] += b[j];
+//   }
+//   for(k = 0; k < tmpna; k++) {
+//     ans += tmpa[k] * tmpb[k];
+//   }
+//   return(ans);
+// }
 
 // [[Rcpp::export]]
 NumericVector pcovcc(NumericVector a, NumericVector ap, NumericVector b, NumericVector at, NumericVector atp, NumericVector bt, int na, int nap, int nb, int period) {
@@ -155,3 +156,140 @@ NumericVector pcovcc(NumericVector a, NumericVector ap, NumericVector b, Numeric
   return(ans);
 }
 
+
+
+arma::mat backfill(const arma::mat& arr, const arma::mat& missings){
+  arma::mat res = arr;
+  double fill = 0.0;
+  for(arma::uword j = 0; j < arr.n_cols; j++){
+    fill = 0.0;
+    for(arma::uword i = arr.n_rows - 1; i > 0; i--){ // why should this not be i>=0?
+      if(missings(i,j)){
+        fill = arr(i,j);
+      }
+      res(i,j) = fill;
+    }
+  }
+  return(res);
+}
+
+//[[Rcpp::export]]
+Rcpp::List bacImpliedBetaHYCpp(arma::mat& components, const arma::mat& missings, arma::mat& componentWeights){
+  arma::mat impliedBeta = arma::zeros<arma::mat>(components.n_cols, components.n_cols);
+  arma::mat cov = arma::zeros<arma::mat>(components.n_cols, components.n_cols);
+  components = backfill(components, missings);
+  componentWeights = backfill(componentWeights, missings);
+  double tmp = 0.0;
+  
+  for(arma::uword k = 0; k < components.n_cols; k++){
+    for(arma::uword l = 0; l < components.n_cols; l++){
+      double beta = 0.0;
+      double __sum = 0.0;
+      for(arma::uword i = 0; i < components.n_rows; i++){
+        if(missings(i,k) || missings(i,l)){
+          tmp = components(i,k) * components(i,l);
+          __sum += tmp;
+          beta += (tmp * componentWeights(i,k));
+        }
+      }
+      impliedBeta(k, l) = beta;
+      cov(k, l) = __sum;
+    }
+  }
+  
+  Rcpp::List out = Rcpp::List::create(Rcpp::Named("impliedBeta") = sum(impliedBeta,0),
+                     Rcpp::Named("cov") = cov);
+  return(out);
+  // return(impliedBeta);
+}
+
+
+
+//[[Rcpp::export]]
+arma::rowvec bacImpliedBetaCpp(const arma::mat& components, const arma::mat& missings, const arma::mat& componentWeights){
+  arma::mat beta = arma::zeros<arma::mat>(components.n_cols, components.n_cols);
+  
+  int count;
+  double currentK, currentL, currentWeight, bayta;
+  bool boolK, boolL; 
+  
+  for(arma::uword k = 0; k < components.n_cols; k++){
+    for(arma::uword l = 0; l < components.n_cols; l++){
+      count = 0;
+      boolK = false;
+      boolL = false;
+      currentK = 0.0;
+      currentL = 0.0;
+      bayta = 0.0;
+      currentWeight = 0.0;
+      
+      for(arma::uword i = 0; i < components.n_rows; i++){
+        currentWeight += componentWeights(i, k);
+        count += 1;
+        
+        if(missings(i, k)){
+          boolK = true;
+          currentK += components(i, k);
+        }
+        
+        if(missings(i, l)){
+          boolL = true;
+          currentL += components(i, l);
+        }
+        
+        if(boolK & boolL){
+          bayta += currentWeight / count * currentL * currentK;
+          boolK = false;
+          boolL = false;
+          count = 0;
+          currentK = 0.0;
+          currentL = 0.0;
+          currentWeight = 0.0;
+        }
+        beta(k, l) = bayta;
+      }
+      
+    }
+  }
+  
+  return(sum(beta, 0));
+  
+}
+
+
+//[[Rcpp::export]]
+
+double bacHY(const arma::colvec& component, const arma::colvec& ETF, const arma::uvec& missingComponent, const arma::uvec& missingETF,
+             const arma::colvec& componentWeightings){
+  double res  = 0.0;
+  
+  for(uword i = 0; i < component.n_elem; i++){
+    
+    if(missingComponent[i]){
+      for(uword j = i; j < component.n_elem; j++){
+        if(missingETF[j]){
+          res += component[i] * componentWeightings[i] * ETF[j];
+          break;
+        }
+      }
+      continue;
+    }
+    
+    
+    if(missingETF[i]){
+      for(uword j = i; j < component.n_elem; j++){
+        if(missingComponent[j]){
+          res += ETF[i] * component[j] * componentWeightings[j];
+          break;
+        }
+        
+      }
+    }
+    
+    
+    
+  }
+  
+
+  return res;  
+}

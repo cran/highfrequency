@@ -1,11 +1,11 @@
 #' Aggregate a time series
 #' 
-#' @description Aggregate a time series as \code{xts} object. 
+#' @description Aggregate a time series as \code{xts} or \code{data.table} object. 
 #' It can handle irregularly spaced time series and returns a regularly spaced one.
 #' Use univariate time series as input for this function and check out \code{\link{aggregateTrades}}
 #' and \code{\link{aggregateQuotes}} to aggregate Trade or Quote data objects.
 #' 
-#' @param ts \code{xts} object to aggregate.
+#' @param ts \code{xts} or \code{data.table} object to aggregate.
 #' @param FUN function to apply over each interval. By default, previous tick aggregation is done. 
 #' Alternatively one can set e.g. FUN = "mean".
 #' In case weights are supplied, this argument is ignored and a weighted average is taken.
@@ -19,6 +19,7 @@
 #' By default, an NA is returned in case an interval is empty, except when the user opts
 #' for previous tick aggregation, by setting \code{FUN = "previoustick"} (default).
 #' @param tz character denoting which timezone the output should be in. Defaults to \code{NULL}
+#' @param ... extra parameters passed on to \code{FUN}
 #' @details The time stamps of the new time series are the closing times and/or days of the intervals. 
 #' For example, for a weekly aggregation the new time stamp is the last day in that particular week (namely Sunday).
 #' 
@@ -60,136 +61,11 @@
 #' @importFrom stats start end
 #' @importFrom xts period.apply tzone	
 #' @export
-aggregateTS <- function (ts, FUN = "previoustick", alignBy = "minutes", alignPeriod = 1, weights = NULL, dropna = FALSE, tz = NULL) {
-  
-  makethispartbetter <- ((!is.null(weights))| alignBy=="days"| alignBy=="weeks" | (FUN!="previoustick") | dropna)
-  if(length(alignPeriod) > 1){
-    alignPeriod <- alignPeriod[1]
-    warning("alignPeriod must be of length one. Longer object provided. Using only first entry.")
-  }
-  
-  if (FUN == "previoustick") {
-    FUN <- previoustick 
-  } else {
-    FUN <- match.fun(FUN)
-  }
-  
-  if(is.null(tz)){
-    tz <- tzone(ts)
-  }
-  
-  if(alignBy == "ticks"){ ## Special case for alignBy = "ticks"
-    if(alignPeriod < 1 | alignPeriod%%1 != 0){
-      stop("When alignBy is `ticks`, must be a positive integer valued numeric")
-    }
-    idx <- seq(1, nrow(ts), by = alignPeriod)
-    if(alignPeriod %% nrow(ts) != 0){
-      idx <- c(idx, nrow(ts))
-    }
-    ts <- ts[idx,]
-    return(ts)
-  }
-  
-  if (makethispartbetter)  {
-    
-    if (is.null(weights)) {
-      ep <- endpoints(ts, alignBy, alignPeriod)
-      if (dim(ts)[2] == 1) { 
-        ts2 <- period.apply(ts, ep, FUN) 
-      }
-      if (dim(ts)[2] > 1) {  
-        ts2 <- xts(apply(ts, 2, FUN = periodApply2, FUN2 = FUN, INDEX = ep), order.by = index(ts)[ep],)
-      }
-    } else {
-      tsb <- cbind(ts, weights)
-      ep  <- endpoints(tsb, alignBy, alignPeriod)
-      ts2 <- period.apply(tsb, ep, FUN = match.fun(weightedaverage))
-    }
-    if (alignBy == "minutes" | alignBy == "mins" | alignBy == "secs" | alignBy == "seconds") {
-      if (alignBy == "minutes" | alignBy == "mins") {
-        secs = alignPeriod * 60
-      }
-      if (alignBy == "secs" | alignBy == "seconds") {
-        secs <- alignPeriod
-      }
-      a <- index(ts2) + (secs - as.numeric(index(ts2)) %% secs)
-      ts3 <- xts(ts2, a, tzone = tz)
-    }
-    if (alignBy == "hours") {
-      secs = 3600
-      a <- index(ts2) + (secs - as.numeric(index(ts2)) %% secs)
-      ts3 <- xts(ts2, a, tzone = tz)
-    }
-    if (alignBy == "days") {
-      secs = 24 * 3600
-      a   <- index(ts2) + (secs - as.numeric(index(ts2)) %% secs) - (24 * 3600)
-      ts3 <- xts(ts2, a, tzone = tz)
-    }
-    if (alignBy == "weeks") {
-      secs = 24 * 3600 * 7
-      a <- (index(ts2) + (secs - (index(ts2) + (3L * 86400L)) %% secs)) - 
-        (24 * 3600)
-      ts3 <- xts(ts2, a, tzone = tz)
-    }
-    
-    if (!dropna) {
-      if (alignBy != "weeks" & alignBy != "days") {
-        if (alignBy == "secs" | alignBy == "seconds") {
-          tby <- "s"
-        }
-        if (alignBy == "mins" | alignBy == "minutes") {
-          tby <- "min"
-        }
-        if (alignBy == "hours") {
-          tby <- "h"
-        }
-        by <- paste(alignPeriod, tby, sep = " ")
-        allindex <- as.POSIXct(seq(start(ts3), end(ts3), by = by))
-        xx <- xts(rep("1", length(allindex)), order.by = allindex)
-        ts3 <- merge(ts3, xx)[, (1:dim(ts)[2])]
-      }
-    }
-    
-    ts3 <- xts(ts3, as.POSIXct(index(ts3)), tzone = tz)
-    return(ts3)
-  }
-  
-  if(!makethispartbetter){
-    if (alignBy == "secs" | alignBy == "seconds") { 
-      secs <- alignPeriod 
-      tby <- paste(alignPeriod, "sec", sep = " ")
-    }
-    if (alignBy == "mins" | alignBy == "minutes") { 
-      secs <- 60*alignPeriod
-      tby = paste(60*alignPeriod,"sec",sep=" ")
-    }
-    if (alignBy == "hours") { 
-      secs <- 3600 * alignPeriod 
-      tby <- paste(3600 * alignPeriod, "sec", sep=" ")
-    }
-    
-    FUN <- match.fun(FUN)
-    
-    g <- base::seq(start(ts), end(ts), by = tby)
-    rawg <- as.numeric(as.POSIXct(g, tz = "GMT"))
-    newg <- rawg + (secs - rawg %% secs)
-    
-    if(as.numeric(end(ts)) == newg[length(newg)-1]){
-      newg  <- newg[-length(newg)]
-    }
-    
-    
-    g <- as.POSIXct(newg, origin = "1970-01-01", tz = "GMT")
-    firstObs <- ts[1,]
-    ts <- na.locf(merge(ts, zoo(NULL, g)))[as.POSIXct(g, tz = tz)]
-    if(index(ts[1]) > index(firstObs)){
-      index(firstObs) <- index(ts[1]) - secs
-      ts <- c(firstObs, ts)
-    }
-    
-    ts <- ts[!duplicated(index(ts), fromLast = TRUE)]
-    
-    return(ts) 
+aggregateTS <- function (ts, FUN = "previoustick", alignBy = "minutes", alignPeriod = 1, weights = NULL, dropna = FALSE, tz = NULL, ...) {
+  if(is.xts(ts)){
+    return(internalAggregateTSXTS(ts, FUN = FUN, alignBy = alignBy, alignPeriod = alignPeriod, weights = weights, dropna = dropna, tz = tz, ...))
+  } else if(is.data.table(ts)){
+    return(internalAggregateTSDT(ts, FUN = FUN, alignBy = alignBy, alignPeriod = alignPeriod, weights = weights, dropna = dropna, tz = tz, ...))
   }
 }
 
@@ -239,7 +115,7 @@ aggregatePrice <- function(pData, alignBy = "minutes", alignPeriod = 1, marketOp
   ## checking
   nm <- toupper(colnames(pData))
   pData <- checkColumnNames(pData)
-  .N <- .I <- N <- DATE <- DT <- FIRST_DT <- DT_ROUND <- LAST_DT <- SYMBOL <- PRICE <- NULL
+  i.DATE <- .SD <- .N <- .I <- DATE <- DT <- FIRST_DT <- DT_ROUND <- LAST_DT <- SYMBOL <- PRICE <- NULL
 
 
   if (alignBy == "milliseconds") {
@@ -259,6 +135,7 @@ aggregatePrice <- function(pData, alignBy = "minutes", alignPeriod = 1, marketOp
   if(! (alignBy %in% c("milliseconds", "secs", "seconds", "mins", "minutes", "hours", "ticks"))){
     stop("alignBy not valid value. Valid values are: \"milliseconds\", \"secs\", \"seconds\", \"mins\", \"minutes\", \"hours\", and \"ticks\".")
   }
+  
 
   inputWasXts <- FALSE
   if (!is.data.table(pData)) {
@@ -281,6 +158,21 @@ aggregatePrice <- function(pData, alignBy = "minutes", alignPeriod = 1, marketOp
     pData[, SYMBOL := "UKNOWN"]
   }
   
+  
+  if(alignBy == "ticks"){ ## Special case for alignBy = "ticks"
+    if(alignPeriod == 1) return(pData[])
+    if(alignPeriod < 1 | alignPeriod%%1 != 0){
+      stop("When alignBy is `ticks`, must be a positive integer valued numeric")
+    }
+    # if(length(unique(as.Date(pData[,DT]))) > 1){
+    #   stop("Multiday support for aggregatePrice with alignBy = \"ticks\" is not implemented yet.")
+    # }
+    return(pData[seqInclEnds(1, .N, alignPeriod), .SD, by = list(DATE = as.Date(DT)), .SDcols = 1:ncol(pData)][])
+  }
+  
+  
+  
+  
   timeZone <- format(pData$DT[1], format = "%Z")
   if(is.null(timeZone) || timeZone == ""){
     if(is.null(tz)){
@@ -292,62 +184,42 @@ aggregatePrice <- function(pData, alignBy = "minutes", alignPeriod = 1, marketOp
   } else {
     tz <- timeZone
   }
-  setkey(pData, DT) # The below code MAY fail with data with unordered DT column. Also setkey inceases speed of grouping
+  setkeyv(pData, c("DT", "SYMBOL")) # The below code MAY fail with data with unordered DT column. Also setkey inceases speed of grouping
   ## Checking ends
   # Convert DT to numeric. This is much faster than dealing with the strings (POSIXct)
   pData[, DT := as.numeric(DT, tz = tz)]
   # Calculate the date in the data
-  pData[, DATE := as.Date(floor(as.numeric(DT, tz = tz) / 86400), origin = "1970-01-01", tz = tz)]
+  pData[, DATE := as.Date(floor(DT / 86400), origin = "1970-01-01", tz = tz)]
   # extract a vector of dates
-  dates <- unique(pData[,DATE])
+  obsPerDay <- pData[, .N, by = list(DATE, SYMBOL)]
+  
   ## Find the opening times of each of the days as numerics.
-  marketOpenNumeric <- as.numeric(as.POSIXct(paste(dates, marketOpen), format = "%Y-%m-%d %H:%M:%OS", tz = tz), tz = tz)
-  marketCloseNumeric <- as.numeric(as.POSIXct(paste(dates, marketClose), format = "%Y-%m-%d %H:%M:%OS", tz = tz), tz =tz)
-  # Find observations per day
-  obsPerDay <- pData[, .N, by = DATE][,N]
-
+  marketOpenNumeric <- as.numeric(as.POSIXct(paste(obsPerDay$DATE, marketOpen), format = "%Y-%m-%d %H:%M:%OS", tz = tz), tz = tz)
+  marketCloseNumeric <- as.numeric(as.POSIXct(paste(obsPerDay$DATE, marketClose), format = "%Y-%m-%d %H:%M:%OS", tz = tz), tz =tz)
+  
   ## Here we make sure that we can correctly handle times that happen before midnight in the corrected timestamps from the flag if statements
-  if(length(marketOpenNumeric) != length(obsPerDay)){
-    if(length(marketOpenNumeric) < length(obsPerDay)){ ## Here we add entries
-      marketOpenNumeric <- rep(marketOpenNumeric, length(obsPerDay))[1:length(obsPerDay)]
-      marketCloseNumeric <- rep(marketCloseNumeric, length(obsPerDay))[1:length(obsPerDay)]
+  if(NROW(marketOpenNumeric) != NROW(obsPerDay)){
+    if(NROW(marketOpenNumeric) < NROW(obsPerDay)){ ## Here we add entries
+      marketOpenNumeric <- rep(marketOpenNumeric, NROW(obsPerDay))[1:NROW(obsPerDay)]
+      marketCloseNumeric <- rep(marketCloseNumeric, NROW(obsPerDay))[1:NROW(obsPerDay)]
     } else {
       stop("unknown error occured in aggregatePrice")
     }
 
   }
-
   # Subset observations that does not fall between their respective market opening and market closing times.
-  pData <- pData[between(DT, rep(marketOpenNumeric, obsPerDay), rep(marketCloseNumeric, obsPerDay))]
-  # Find observations per day again
-  obsPerDay <- pData[, .N, by = DATE][,N]
-
+  pData <- pData[between(DT, rep(marketOpenNumeric, obsPerDay$N), rep(marketCloseNumeric, obsPerDay$N))]
+  obsPerDay <- pData[, .N, by = list(DATE, SYMBOL)]
   ## Here (AGAIN!) we make sure that we can correctly handle if we deleted a day in the subsetting step above
-  if(length(marketOpenNumeric) != length(obsPerDay)){
-    if(length(marketOpenNumeric) > length(obsPerDay)){ ## Here we delete entries
-      marketOpenNumeric <- rep(marketOpenNumeric, length(obsPerDay))[1:length(obsPerDay)]
-      marketCloseNumeric <- rep(marketCloseNumeric, length(obsPerDay))[1:length(obsPerDay)]
+  if(NROW(marketOpenNumeric) != NROW(obsPerDay)){
+    if(NROW(marketOpenNumeric) > NROW(obsPerDay)){ ## Here we delete entries
+      marketOpenNumeric <- rep(marketOpenNumeric, NROW(obsPerDay))[1:NROW(obsPerDay)]
+      marketCloseNumeric <- rep(marketCloseNumeric, NROW(obsPerDay))[1:NROW(obsPerDay)]
     } else {
       stop("unknown error occured in aggregatePrice")
     }
-
-
   }
 
-  if(alignBy == "ticks"){ ## Special case for alignBy = "ticks"
-    if(alignPeriod < 1 | alignPeriod%%1 != 0){
-      stop("When alignBy is `ticks`, must be a positive integer valued numeric")
-    }
-    if(length(unique(as.Date(pData[,DT]))) > 1){
-      stop("Multiday support for aggregatePrice with alignBy = \"ticks\" is not implemented yet.")
-    }
-    idx <- seq(1, nrow(pData), by = alignPeriod)
-    if(alignPeriod %% nrow(pData) != 0){
-      idx <- c(idx, nrow(pData))
-    }
-    pData <- pData[idx,]
-    return(pData[])
-  }
 
   # Find the first observation per day.
   pData[, FIRST_DT := min(DT), by = list(SYMBOL, DATE)]
@@ -363,6 +235,7 @@ aggregatePrice <- function(pData, alignBy = "minutes", alignPeriod = 1, marketOp
   pData_open[, DT := floor(DT/86400) * 86400 + marketOpenNumeric %% 86400]
 
   # Take the last observation of each group of LAST_DT
+
   pData <- pData[pData[DT == LAST_DT, .I[.N], by = list(SYMBOL, DT_ROUND)]$V1][, DT := DT_ROUND] ## Make sure we only take the last observation
 
   # due to rounding there may be an observation that is refered to the opening time
@@ -373,10 +246,21 @@ aggregatePrice <- function(pData, alignBy = "minutes", alignPeriod = 1, marketOp
 
   if (fill) {
     # Construct timestamps that go from marketOpenNumeric to marketClose numeric each day with step of scaleFactor e.g. 1 min (60)
-    dt_full_index <- data.table(DT = as.numeric(mSeq(marketOpenNumeric, marketCloseNumeric, as.double(scaleFactor))))
-    setkey(dt_full_index, DT)
-    # Merge the construct the NA.LOCF filled in data.
-    pData <- unique(pData[dt_full_index, roll = TRUE, on = "DT"])
+    symbs <- pData[, list(SYMBOL = unique(SYMBOL)), by = DATE]
+    if(NROW(symbs) > NROW(obsPerDay)){ # One or more dates contain multiple symbols
+      setkeyv(pData,c("DT", "SYMBOL"))
+      pData <- pData[, lapply(.SD, nafill, type = "locf"), by = list(i.DATE, SYMBOL), .SDcols = setdiff(colnames(pData), c("i.DATE", "SYMBOL"))]
+    } else {
+    dt_full_index <- data.table(DT = as.numeric(mSeq(marketOpenNumeric, marketCloseNumeric, as.double(scaleFactor))),
+                                SYMBOL = rep(obsPerDay$SYMBOL, (marketCloseNumeric-marketOpenNumeric)/as.double(scaleFactor) + 1))
+    
+    setkey(dt_full_index, "DT")
+
+    setkey(pData, DT)
+
+    pData <- unique(pData[dt_full_index, roll = TRUE, on = list(SYMBOL, DT)])
+      
+    }
   }
   pData[, DT := as.POSIXct(DT, origin = as.POSIXct("1970-01-01", tz = "UTC"), tz = tz)]
   pData <- pData[, nm, with = FALSE]
@@ -485,18 +369,18 @@ aggregateQuotes <- function(qData, alignBy = "minutes", alignPeriod = 5, marketO
   # Calculate the date in the data
   qData[, DATE := as.Date(floor(as.numeric(DT, tz = tz) / 86400), origin = "1970-01-01", tz = tz)]
   # extract a vector of dates
-  dates <- unique(qData[,DATE])
+  obsPerDay <- qData[, .N, by = list(DATE, SYMBOL)]
+  
   ## Find the opening times of each of the days as numerics.
-  marketOpenNumeric <- as.numeric(as.POSIXct(paste(dates, marketOpen), format = "%Y-%m-%d %H:%M:%OS", tz = tz), tz = tz) 
-  marketCloseNumeric <- as.numeric(as.POSIXct(paste(dates, marketClose), format = "%Y-%m-%d %H:%M:%OS", tz = tz), tz =tz)
-  # Find observations per day
-  obsPerDay <- qData[, .N, by = DATE][,N]
+  marketOpenNumeric <- as.numeric(as.POSIXct(paste(obsPerDay$DATE, marketOpen), format = "%Y-%m-%d %H:%M:%OS", tz = tz), tz = tz)
+  marketCloseNumeric <- as.numeric(as.POSIXct(paste(obsPerDay$DATE, marketClose), format = "%Y-%m-%d %H:%M:%OS", tz = tz), tz =tz)
+  
   
   ## Here we make sure that we can correctly handle times that happen before midnight in the corrected timestamps from the flag if statements
-  if(length(marketOpenNumeric) != length(obsPerDay)){
-    if(length(marketOpenNumeric) < length(obsPerDay)){ ## Here we add entries
-      marketOpenNumeric <- rep(marketOpenNumeric, length(obsPerDay))[1:length(obsPerDay)]
-      marketCloseNumeric <- rep(marketCloseNumeric, length(obsPerDay))[1:length(obsPerDay)]
+  if(NROW(marketOpenNumeric) != NROW(obsPerDay)){
+    if(NROW(marketOpenNumeric) < NROW(obsPerDay)){ ## Here we add entries
+      marketOpenNumeric <- rep(marketOpenNumeric, NROW(obsPerDay$N))[1:NROW(obsPerDay)]
+      marketCloseNumeric <- rep(marketCloseNumeric, NROW(obsPerDay$N))[1:NROW(obsPerDay)]
     } else {
       stop("unknown error occured in aggregateQuotes")
     }
@@ -504,15 +388,13 @@ aggregateQuotes <- function(qData, alignBy = "minutes", alignPeriod = 5, marketO
   }
   
   # Subset observations that does not fall between their respective market opening and market closing times.
-  qData <- qData[between(DT, rep(marketOpenNumeric, obsPerDay), rep(marketCloseNumeric, obsPerDay))]
-  # Find observations per day again
-  obsPerDay <- qData[, .N, by = DATE][,N]
-  
+  qData <- qData[between(DT, rep(marketOpenNumeric, obsPerDay$N), rep(marketCloseNumeric, obsPerDay$N))]
+  obsPerDay <- qData[, .N, by = list(DATE, SYMBOL)]
   ## Here (AGAIN!) we make sure that we can correctly handle if we deleted a day in the subsetting step above
-  if(length(marketOpenNumeric) != length(obsPerDay)){
-    if(length(marketOpenNumeric) > length(obsPerDay)){ ## Here we delete entries
-      marketOpenNumeric <- rep(marketOpenNumeric, length(obsPerDay))[1:length(obsPerDay)]
-      marketCloseNumeric <- rep(marketCloseNumeric, length(obsPerDay))[1:length(obsPerDay)]
+  if(NROW(marketOpenNumeric) != NROW(obsPerDay)){
+    if(NROW(marketOpenNumeric) > NROW(obsPerDay)){ ## Here we delete entries
+      marketOpenNumeric <- rep(marketOpenNumeric, NROW(obsPerDay$N))[1:NROW(obsPerDay)]
+      marketCloseNumeric <- rep(marketCloseNumeric, NROW(obsPerDay$N))[1:NROW(obsPerDay)]
     } else {
       stop("unknown error occured in aggregateQuotes")
     }
@@ -593,7 +475,7 @@ aggregateQuotes <- function(qData, alignBy = "minutes", alignPeriod = 5, marketO
 #' @export
 aggregateTrades <- function(tData, alignBy = "minutes", alignPeriod = 5, marketOpen = "09:30:00", marketClose = "16:00:00", tz = NULL) {
   .I <- .N <- N <- DATE <- SIZE <- DT <- FIRST_DT <- DT_ROUND <- LAST_DT <- SYMBOL <- PRICE <- VWPRICE <- SIZETPRICE <- SIZESUM <- NULL
-  nm <- toupper(colnames(tData))
+  nm <- c(toupper(colnames(tData)), "VWPRICE")
   if (!("SYMBOL" %in% nm)) {
     if(is.data.table(tData)){
       tData[, SYMBOL := "UKNOWN"]
@@ -654,20 +536,19 @@ aggregateTrades <- function(tData, alignBy = "minutes", alignPeriod = 5, marketO
   # Convert DT to numeric. This is much faster than dealing with the strings (POSIXct)
   tData[, DT := as.numeric(DT, tz = tz)]
   # Calculate the date in the data
-  tData[, DATE := as.Date(floor(as.numeric(DT, tz = tz) / 86400), origin = "1970-01-01", tz = tz)]
+  tData[, DATE := as.Date(floor(DT / 86400), origin = "1970-01-01", tz = tz)]
   # extract a vector of dates
-  dates <- unique(tData[,DATE])
+  obsPerDay <- tData[, .N, by = list(DATE, SYMBOL)]
+  
   ## Find the opening times of each of the days as numerics.
-  marketOpenNumeric <- as.numeric(as.POSIXct(paste(dates, marketOpen), format = "%Y-%m-%d %H:%M:%OS", tz = tz), tz = tz) 
-  marketCloseNumeric <- as.numeric(as.POSIXct(paste(dates, marketClose), format = "%Y-%m-%d %H:%M:%OS", tz = tz), tz =tz)
-  # Find observations per day
-  obsPerDay <- tData[, .N, by = DATE][,N]
+  marketOpenNumeric <- as.numeric(as.POSIXct(paste(obsPerDay$DATE, marketOpen), format = "%Y-%m-%d %H:%M:%OS", tz = tz), tz = tz) 
+  marketCloseNumeric <- as.numeric(as.POSIXct(paste(obsPerDay$DATE, marketClose), format = "%Y-%m-%d %H:%M:%OS", tz = tz), tz =tz)
   
   ## Here we make sure that we can correctly handle times that happen before midnight in the corrected timestamps from the flag if statements
-  if(length(marketOpenNumeric) != length(obsPerDay)){
-    if(length(marketOpenNumeric) < length(obsPerDay)){ ## Here we add entries
-      marketOpenNumeric <- rep(marketOpenNumeric, length(obsPerDay))[1:length(obsPerDay)]
-      marketCloseNumeric <- rep(marketCloseNumeric, length(obsPerDay))[1:length(obsPerDay)]
+  if(NROW(marketOpenNumeric) != NROW(obsPerDay)){
+    if(NROW(marketOpenNumeric) < NROW(obsPerDay)){ ## Here we add entries
+      marketOpenNumeric <- rep(marketOpenNumeric, NROW(obsPerDay))[1:NROW(obsPerDay)]
+      marketCloseNumeric <- rep(marketCloseNumeric, NROW(obsPerDay))[1:NROW(obsPerDay)]
     } else {
       stop("unknown error occured in aggregateTrades")
     }
@@ -675,15 +556,15 @@ aggregateTrades <- function(tData, alignBy = "minutes", alignPeriod = 5, marketO
   }
   
   # Subset observations that does not fall between their respective market opening and market closing times.
-  tData <- tData[between(DT, rep(marketOpenNumeric, obsPerDay), rep(marketCloseNumeric, obsPerDay))]
+  tData <- tData[between(DT, rep(marketOpenNumeric, obsPerDay$N), rep(marketCloseNumeric, obsPerDay$N))]
   # Find observations per day again
-  obsPerDay <- tData[, .N, by = DATE][,N]
+  obsPerDay <- tData[, .N, by = list(DATE, SYMBOL)]
   
   ## Here (AGAIN!) we make sure that we can correctly handle if we deleted a day in the subsetting step above
-  if(length(marketOpenNumeric) != length(obsPerDay)){
-    if(length(marketOpenNumeric) > length(obsPerDay)){ ## Here we delete entries
-      marketOpenNumeric <- rep(marketOpenNumeric, length(obsPerDay))[1:length(obsPerDay)]
-      marketCloseNumeric <- rep(marketCloseNumeric, length(obsPerDay))[1:length(obsPerDay)]
+  if(NROW(marketOpenNumeric) != NROW(obsPerDay)){
+    if(NROW(marketOpenNumeric) > NROW(obsPerDay)){ ## Here we delete entries
+      marketOpenNumeric <- rep(marketOpenNumeric, NROW(obsPerDay))[1:NROW(obsPerDay)]
+      marketCloseNumeric <- rep(marketCloseNumeric, NROW(obsPerDay))[1:NROW(obsPerDay)]
     } else {
       stop("unknown error occured in aggregateTrades")
     }
@@ -871,8 +752,7 @@ autoSelectExchangeQuotes <- function(qData, printExchange = TRUE) {
     stop("Please provide only one symbol at a time.")
   }
   
-  qData[, SUMVOL := sum(BIDSIZ + OFRSIZ), by = "EX"]
-  qData <- qData[SUMVOL == max(SUMVOL)][, -c("SUMVOL")]
+  qData <- qData[EX == qData[, list(SUMVOL = sum(BIDSIZ + OFRSIZ)), by = "EX"][SUMVOL == max(SUMVOL), EX]]
   
   if (printExchange) {
     exch <- unique(qData$EX)
@@ -939,43 +819,34 @@ exchangeHoursOnly <- function(data, marketOpen = "09:30:00", marketClose = "16:0
   } else {
     tz <- timeZone
   }
-  setkey(data, "DT") # The below code MAY fail with data with unordered DT column. Also setkey inceases speed of grouping
-  data[, DATE := as.Date(floor(as.numeric(DT, tz = tz) / 86400), origin = "1970-01-01", tz = tz)]
-  dates <- unique(data[,DATE])
-  # data <- data[DT >= ymd_hms(paste(as.Date(data$DT), dayBegin), tz = tzone(data$DT))]
-  # data <- data[DT <= ymd_hms(paste(as.Date(data$DT), dayEnd), tz = tzone(data$DT))]
-  # 
-  # days <- 0
-  # if(grepl('+', marketClose)){
-  #   re <- regexpr('[+][[:digit:]]+', marketClose)
-  #   days <- substr(marketClose, re[1], re[1] + attr(re, 'match.length'))
-  #   days <- as.numeric(days)
-  # }
-  marketOpenNumeric <- as.numeric(as.POSIXct(paste(dates, marketOpen), format = "%Y-%m-%d %H:%M:%OS", tz = tz), tz = tz)
-  marketCloseNumeric <- as.numeric(as.POSIXct(paste(dates, marketClose), format = "%Y-%m-%d %H:%M:%OS", tz = tz), tz =tz)
+  setkey(data, DT) # The below code MAY fail with data with unordered DT column. Also setkey inceases speed of grouping
+  
+  obsPerDay <- data[, .N, by = list(DATE = as.Date(floor(as.numeric(DT, tz = tz) / 86400), origin = "1970-01-01", tz = tz))] # Dates and observations per day
+  
+  marketOpenNumeric <- as.numeric(as.POSIXct(paste(obsPerDay[[1]], marketOpen), format = "%Y-%m-%d %H:%M:%OS", tz = tz), tz = tz)
+  marketCloseNumeric <- as.numeric(as.POSIXct(paste(obsPerDay[[1]], marketClose), format = "%Y-%m-%d %H:%M:%OS", tz = tz), tz =tz)
   # marketCloseNumeric <- marketCloseNumeric + days * 86400 # 60 * 60 * 24
-  obsPerDay <- data[, .N, by = DATE][,N]
   
   ## Here we make sure that we can correctly handle times that happen before midnight in the corrected timestamps from the flag if statements
-  if(length(marketOpenNumeric) != length(obsPerDay)){
-    if(length(marketOpenNumeric) < length(obsPerDay)){ ## Here we add entries
-      marketOpenNumeric <- rep(marketOpenNumeric, length(obsPerDay))[1:length(obsPerDay)]
-      marketCloseNumeric <- rep(marketCloseNumeric, length(obsPerDay))[1:length(obsPerDay)]
-    } else {
-      stop("unknown error occured in aggregatePrice")
+  if(length(marketOpenNumeric) != nrow(obsPerDay)){
+    if(length(marketOpenNumeric) < nrow(obsPerDay)){ ## Here we add entries
+      marketOpenNumeric <- rep(marketOpenNumeric, nrow(obsPerDay))[1:nrow(obsPerDay)]
+      marketCloseNumeric <- rep(marketCloseNumeric, nrow(obsPerDay))[1:nrow(obsPerDay)]
+    } else { ## This shouldn't be possible but we check so we can make an error
+      stop("unknown error occured in exchangeHoursOnly")
     }
     
   }
   
   # Subset observations that does not fall between their respective market opening and market closing times.
-  data <- data[between(DT, rep(marketOpenNumeric, obsPerDay), rep(marketCloseNumeric, obsPerDay))]
-  data <- data[, nm, with = FALSE]
+  data <- data[between(DT, rep(marketOpenNumeric, obsPerDay[[2]]), rep(marketCloseNumeric, obsPerDay[[2]])), nm, with = FALSE]
   if (inputWasXts) {
     return(xts(as.matrix(data[, -c("DT")]), order.by = data$DT, tzone = tzone(data$DT)))
   } else {
     return(data[])
   }
 }
+
 
 
 
@@ -1050,13 +921,8 @@ exchangeHoursOnly <- function(data, marketOpen = "09:30:00", marketClose = "16:0
 #' @export
 makeReturns <- function(ts) {
   inputWasXts <- is.xts(ts)
-  l <- dim(ts)[1]
-  if(is.null(l)) { ## Special case for ts is numeric vector
-    l <- length(ts)
-    D <- 1
-  } else {
-    D <- dim(ts)[2]
-  }
+  l <- NROW(ts) # allows for numeric()s
+  D <- NCOL(ts) # allows for numeric()s
   
   col_names <- colnames(ts)
   x <- log(matrix(as.numeric(ts), nrow = l))
@@ -1274,13 +1140,12 @@ mergeQuotesSameTimestamp <- function(qData, selection = "median") {
   # keep summed size columns
   keepCols <- colnames(qData)[!(colnames(qData) %in% c("DT", "SYMBOL","BID", "OFR","BIDSIZ", "OFRSIZ"))]
   keptData <- qData[, lapply(.SD, last), by = list(DT, SYMBOL)][, keepCols, with = FALSE]
-  qData_size <- qData[, lapply(.SD, sum), by = list(DT, SYMBOL), .SDcols = c("BIDSIZ", "OFRSIZ")]
   if (selection == "median") {
-    qData <- qData[, lapply(.SD, median), by = list(DT, SYMBOL), .SDcols = c("BID", "OFR")]
-    
+    qData <- qData[, list(BID = median(BID), OFR = median(OFR), OFRSIZ = sum(OFRSIZ), BIDSIZ = sum(BIDSIZ)), by = list(DT, SYMBOL)]
   }
   
   if (selection == "max.volume") {
+    qData_size <- qData[, lapply(.SD, sum), by = list(DT, SYMBOL), .SDcols = c("BIDSIZ", "OFRSIZ")]
     qData <- qData[, MAXBID := max(BIDSIZ), by = list(DT, SYMBOL)][, MAXOFR := max(OFRSIZ), by = list(DT, SYMBOL)][
       , BIDSIZ := fifelse(BIDSIZ == MAXBID, 1, 0)][
       , OFRSIZ := fifelse(OFRSIZ == MAXOFR, 1, 0)][
@@ -1288,17 +1153,21 @@ mergeQuotesSameTimestamp <- function(qData, selection = "median") {
       , OFR := OFR * OFRSIZ][
       , BID := max(BID), by = list(DT,SYMBOL)][, OFR := max(OFR), by = list(DT, SYMBOL)][, -c("MAXBID", "MAXOFR", "BIDSIZ", "OFRSIZ")][
       , lapply(.SD, unique), by = list(DT, SYMBOL), .SDcols = c("BID", "OFR")]
+    qData <- merge(qData, qData_size, by = c("DT", "SYMBOL"))
   }
   if (selection == "weighted.average") {
+    qData_size <- qData[, lapply(.SD, sum), by = list(DT, SYMBOL), .SDcols = c("BIDSIZ", "OFRSIZ")]
     qData[, `:=`(BIDSIZ = as.numeric(BIDSIZ), OFRSIZ = as.numeric(OFRSIZ))]
     qData <- qData[, `:=` (BIDSIZ = BIDSIZ / sum(BIDSIZ), OFRSIZ = OFRSIZ / sum(OFRSIZ)), by = list(DT, SYMBOL)][
       , `:=` (BID = sum(BID * BIDSIZ), OFR = sum(OFR * OFRSIZ)), by = list(DT, SYMBOL)][
         , -c("BIDSIZ", "OFRSIZ")][
         , lapply(.SD, unique), by = list(DT, SYMBOL), .SDcols = c("BID", "OFR")]
+    qData <- merge(qData, qData_size, by = c("DT", "SYMBOL"))
   }
-  qData <- cbind(qData, keptData)
-  qData <- merge(qData, qData_size, by = c("DT", "SYMBOL"))
   
+  
+  qData <- cbind(qData, keptData)
+  setkey(qData, DT, SYMBOL)
   if (inputWasXts) {
     return(xts(as.matrix(qData[, -c("DT")]), order.by = qData$DT))
   } else {
@@ -1359,33 +1228,32 @@ mergeTradesSameTimestamp <- function(tData, selection = "median") {
   }
   
   keepCols <- colnames(tData)[!(colnames(tData) %in% c("DT", "SYMBOL", "PRICE", "SIZE"))]
-  keptData <- tData[, lapply(.SD, last), by = list(DT, SYMBOL)][, keepCols, with = FALSE]
   if (selection == "median") {
-    tData[, `:=` (PRICE = median(PRICE), NUMTRADES = .N), by = list(DT, SYMBOL)]
-    #If there is more than one observation at median price, take the average volume.
-    tData[, SIZE := as.numeric(as.character(SIZE))]
-    tData[, SIZE := sum(SIZE), by = list(DT, SYMBOL)]
-    tData <- unique(tData[, c("DT", "SYMBOL", "PRICE", "SIZE", "NUMTRADES")])
+    keptData <- tData[, lapply(.SD, last), by = list(DT, SYMBOL)][, keepCols, with = FALSE]
+    tData <- tData[, list(PRICE = median(PRICE), NUMTRADES = .N, SIZE = sum(SIZE)), by = list(DT, SYMBOL)]
+    tData <- cbind(tData, keptData)
   }
   
   if (selection == "max.volume") {
+    keptData <- tData[, lapply(.SD, last), by = list(DT, SYMBOL)][, keepCols, with = FALSE]
     tData[, SIZE := as.numeric(as.character(SIZE))]
     tData <- tData[, `:=` (MAXSIZE = max(SIZE), NUMTRADES = .N), by = list(DT, SYMBOL)]
     tData[, SIZE := fifelse(SIZE == MAXSIZE, 1, 0)]
     tData[, PRICE := PRICE * SIZE]
     tData[, PRICE := max(PRICE), by = "DT"]
     tData[, SIZE := MAXSIZE]
-    tData[, -c("MAXSIZE")]
-    tData <- unique(tData[, c("DT", "SYMBOL", "PRICE", "SIZE", "NUMTRADES")])
+    tData <- tData[, -c("MAXSIZE")][, lapply(.SD, last), by = list(DT, SYMBOL), .SDcols = c("PRICE", "SIZE", "NUMTRADES")]
+    tData <- cbind(tData, keptData)
   }
   if (selection == "weighted.average") {
+    keptData <- tData[, lapply(.SD, last), by = list(DT, SYMBOL)][, keepCols, with = FALSE]
     tData[, SIZE := as.numeric(as.character(SIZE))]
     tData <- tData[, `:=` (SIZE_WEIGHT = SIZE / sum(SIZE), NUMTRADES = .N), by = list(DT, SYMBOL)]
     tData[, `:=` (PRICE = sum(PRICE * SIZE_WEIGHT)), by = list(DT, SYMBOL)]
-    tData[, SIZE := sum(SIZE), by = list(DT, SYMBOL)]
-    tData <- unique(tData[, c("DT", "SYMBOL", "PRICE", "SIZE", "NUMTRADES")])
+    tData <- tData[, SIZE := sum(SIZE), by = list(DT, SYMBOL)][, lapply(.SD, last), by = list(DT, SYMBOL), .SDcols = c("PRICE", "SIZE", "NUMTRADES")]
+    tData <- cbind(tData, keptData)
   }
-  tData <- cbind(tData, keptData)
+    
   if (inputWasXts) {
     return(xts(as.matrix(tData[, -c("DT")]), order.by = tData$DT))
   } else {
@@ -1555,15 +1423,15 @@ noZeroQuotes <- function(qData) {
 #' # In case you have more data it is advised to use the on-disk functionality
 #' # via "dataSource" and "dataDestination" arguments
 #' 
-#' @importFrom data.table fread
+#' @importFrom data.table fread setnames `%chin%`
 #' @importFrom utils unzip
 #' @keywords cleaning
 #' @export
 quotesCleanup <- function(dataSource = NULL, dataDestination = NULL, exchanges = "auto", qDataRaw = NULL, report = TRUE, 
-                          selection = "median", maxi = 50, window = 50, type = "advanced", marketOpen = "09:30:00", 
+                          selection = "median", maxi = 50, window = 50, type = "standard", marketOpen = "09:30:00", 
                           marketClose = "16:00:00", rmoutliersmaxi = 10, printExchange = TRUE, saveAsXTS = FALSE, tz = NULL) {
   
-  .SD <- BID <- OFR <- DT <- SPREAD <- SPREAD_MEDIAN <- EX <- DATE <- BIDSIZ <- OFRSIZ <- TIME_M <- SYMBOL <- NULL
+  .SD <- BID <- OFR <- DT <- SPREAD <- SPREAD_MEDIAN <- EX <- DATE <- BIDSIZ <- OFRSIZ <- TIME_M <- SYMBOL <- SYM_SUFFIX <- NULL
 
   
   if (is.null(qDataRaw)) {
@@ -1592,14 +1460,14 @@ quotesCleanup <- function(dataSource = NULL, dataDestination = NULL, exchanges =
       if(inherits(readdata, "try-error")){
         stop(paste("Error encountered while opening data, error message is:",readdata))
       }
-      
+      if(is.null(tz)) tz <- "UTC"
       if(colnames(readdata)[1] == "index"){ # The data was saved from an xts object
         readdata <- try(readdata[, DT := as.POSIXct(index, tz = tz, format = "%Y-%m-%dT%H:%M:%OS")])
       } else if ("DT" %in% colnames(readdata)){
         readdata <- try(readdata[, DT := as.POSIXct(DT, tz = tz, format = "%Y-%m-%dT%H:%M:%OS")])
       } else {
-        readdata <- try(copy(readdata)[,`:=`(DT = as.POSIXct(paste(DATE, TIME_M), tz = "UTC", format = "%Y%m%d %H:%M:%OS"),
-                                      DATE = NULL, TIME_M = NULL, SYM_SUFFIX = NULL)], silent = TRUE)
+        readdata <- try(copy(readdata)[,`:=`(DT = as.POSIXct(paste(DATE, TIME_M), tz = tz, format = "%Y%m%d %H:%M:%OS"),
+                                      DATE = NULL, TIME_M = NULL)], silent = TRUE)
       }
       
       if(inherits(readdata, "try-error")){
@@ -1632,16 +1500,18 @@ quotesCleanup <- function(dataSource = NULL, dataDestination = NULL, exchanges =
   
   if (!is.null(qDataRaw)) {
     
-    nm <- toupper(colnames(qDataRaw))
-    if(!"DT" %in% nm && c("DATE", "TIME_M") %in% nm){
-      qDataRaw[, `:=`(DT = as.POSIXct(paste(DATE, TIME_M), tz = "UTC", format = "%Y%m%d %H:%M:%OS"),
-                      DATE = NULL, TIME_M = NULL, SYM_SUFFIX = NULL)]
-    }
-    
-    
     qDataRaw <- checkColumnNames(qDataRaw)
+    nm <- toupper(colnames(qDataRaw))
     checkqData(qDataRaw)
-    
+    if(!"DT" %in% nm && c("DATE", "TIME_M") %in% nm){
+      if(is.null(tz)) tz <- "UTC"
+      qDataRaw[, `:=`(DT = as.POSIXct(paste(DATE, TIME_M), tz = tz, format = "%Y%m%d %H:%M:%OS"),
+                      DATE = NULL, TIME_M = NULL)]
+      }
+    if("SYM_SUFFIX" %in% nm){
+      qDataRaw[, `:=`(SYMBOL = fifelse(SYM_SUFFIX == "" | is.na(SYM_SUFFIX), yes = SYMBOL, no = paste0(SYMBOL, "_", SYM_SUFFIX)), SYM_SUFFIX = NULL)]
+    }
+  
     inputWasXts <- FALSE
     if (!is.data.table(qDataRaw)) {
       if (is.xts(qDataRaw)) {
@@ -1672,7 +1542,6 @@ quotesCleanup <- function(dataSource = NULL, dataDestination = NULL, exchanges =
     } else {
       tz <- timeZone
     }
-    
     REPORT <- c(initialObservations = 0,
                 removedFromZeroQuotes = 0, 
                 removedOutsideExchangeHours = 0,
@@ -1685,20 +1554,21 @@ quotesCleanup <- function(dataSource = NULL, dataDestination = NULL, exchanges =
     
     nm <- toupper(colnames(qDataRaw))
     
+    setkey(qDataRaw, DT, SYMBOL)
     REPORT[1] <- dim(qDataRaw)[1] 
     qDataRaw <- qDataRaw[BID != 0 & OFR != 0]
     REPORT[2] <- dim(qDataRaw)[1] 
     qDataRaw <- exchangeHoursOnly(qDataRaw, marketOpen = marketOpen, marketClose = marketClose, tz = tz)
     REPORT[3] <- dim(qDataRaw)[1] 
     if("EX" %in% nm){
-      if(exchanges != "auto"){
-        qDataRaw <- qDataRaw[EX %in% exchanges]
+      if(all(exchanges != "auto")){
+        qDataRaw <- qDataRaw[EX %chin% exchanges]
       } else if (exchanges == "auto"){
         qDataRaw <- qDataRaw[, autoSelectExchangeQuotes(.SD, printExchange = printExchange), .SDcols = nm,by = list(SYMBOL, DATE = as.Date(DT, tz = tz))][, nm, with = FALSE]
       }
     }
     REPORT[4] <- dim(qDataRaw)[1]
-    qDataRaw[OFR > BID, `:=`(SPREAD = OFR - BID, DATE = as.Date(DT, tz = tz))][, SPREAD_MEDIAN := median(SPREAD), by = "DATE"]
+    qDataRaw <- qDataRaw[OFR>BID, list(DT, SPREAD = OFR - BID,  SPREAD_MEDIAN = median(OFR-BID), OFR, BID, BIDSIZ, OFRSIZ,EX),by = list(DATE = as.Date(DT, tz = tz), SYMBOL)]
     REPORT[5] <- dim(qDataRaw)[1] 
     qDataRaw <- qDataRaw[SPREAD < (SPREAD_MEDIAN * maxi)][, -c("SPREAD","SPREAD_MEDIAN")]
     REPORT[6] <- dim(qDataRaw)[1]
@@ -1825,6 +1695,7 @@ rmNegativeSpread <- function(qData) {
 #' @param qData a \code{data.table} or \code{xts} object containing the time series data with at least the columns \code{"BID"} and \code{"OFR"}, containing the bid and ask prices.
 #' @param lagQuotes numeric, number of seconds the quotes are registered faster than
 #' the trades (should be round and positive). Default is 0. For older datasets, i.e. before 2010, it may be a good idea to set this to e.g. 2. See Vergote (2005)
+#' @param nSpreads numeric of length 1 denotes how far above the offer and below bid we allow outliers to be. Trades are filtered out if they are MORE THAN nSpread * spread above (below) the offer (bid)
 #' @param BFM a logical determining whether to conduct 'Backwards - Forwards matching' of trades and quotes.
 #' The algorithm tries to match trades that fall outside the bid - ask and first tries to match a small window forwards and if this fails, it tries to match backwards in a bigger window.
 #' The small window is a tolerance for inaccuracies in the timestamps of bids and asks. The backwards window allow for matching of late reported trades, i.e. block trades.
@@ -1849,9 +1720,15 @@ rmNegativeSpread <- function(qData) {
 #' @keywords cleaning
 #' @importFrom data.table setkey set
 #' @export
-rmTradeOutliersUsingQuotes <- function(tData, qData, lagQuotes = 0, BFM = FALSE, backwardsWindow = 3600, forwardsWindow = 0.5, plot = FALSE, ...) {
+rmTradeOutliersUsingQuotes <- function(tData, qData, lagQuotes = 0, nSpreads = 1,  BFM = FALSE, backwardsWindow = 3600, forwardsWindow = 0.5, plot = FALSE, ...) {
   if(length(lagQuotes) != 1){
     lagQuotes <- lagQuotes[1]
+  }
+  if(length(nSpreads) != 1){
+    nSpreads <- nSpreads[1]
+  }
+  if(!is.numeric(nSpreads)){
+    stop("nSpreads must be a numeric value of length 1")
   }
   DATE <- SIZE <- SYMBOL <- PRICE <- DT <- SPREAD <- BID <- OFR <- NULL
   tData <- checkColumnNames(tData)
@@ -1896,7 +1773,7 @@ rmTradeOutliersUsingQuotes <- function(tData, qData, lagQuotes = 0, BFM = FALSE,
   tqData <- matchTradesQuotes(tData, qData, lagQuotes = lagQuotes, BFM = BFM, backwardsWindow = backwardsWindow, forwardsWindow = forwardsWindow, plot = plot, ... = ...)
   
   if(!BFM){
-    tData <- tqData[, SPREAD := OFR - BID][PRICE <= OFR + SPREAD & PRICE >= BID - SPREAD]
+    tData <- tqData[, SPREAD := OFR - BID][PRICE <= OFR + nSpreads * SPREAD & PRICE >= BID - nSpreads * SPREAD]
   
     if (inputWasXts) {
       return(xts(as.matrix(tData[, -c("DT", "SPREAD")]), order.by = tData$DT))
@@ -1963,7 +1840,7 @@ rmTradeOutliersUsingQuotes <- function(tData, qData, lagQuotes = 0, BFM = FALSE,
 #' @importFrom data.table as.data.table is.data.table setnames
 #' @importFrom xts is.xts as.xts
 #' @export
-rmOutliersQuotes <- function (qData, maxi = 10, window = 50, type = "advanced", tz = NULL) {
+rmOutliersQuotes <- function (qData, maxi = 10, window = 50, type = "standard", tz = NULL) {
   # NOTE: Median Absolute deviation chosen contrary to Barndorff-Nielsen et al.
   # Setting those variables equal NULL is for suppressing NOTES in devtools::check
   # References inside data.table-operations throw "no visible binding for global variable ..." error
@@ -2095,7 +1972,7 @@ tradesCondition <- function(tData, validConds = c('', '@', 'E', '@E', 'F', 'FI',
   tData[is.na(COND), COND := ""]
   
   # setnafill(tData, type = "const", fill = "", cols = "COND") ## For when characters become supported :)
-  tData <- tData[trimws(COND) %in% validConds]
+  tData <- tData[gsub("\\s", "", COND) %in% validConds]
   
   if (inputWasXts) {
     return(xts(as.matrix(tData), order.by = tData$DT))
@@ -2128,6 +2005,7 @@ tradesCondition <- function(tData, validConds = c('', '@', 'E', '@E', 'F', 'FI',
 #' @return \code{xts} or \code{data.table} object depending on input.
 #' 
 #' @author Jonathan Cornelissen, Kris Boudt, Onno Kleen, and Emil Sjoerup.
+#' @importFrom data.table %chin%
 #' @keywords cleaning
 #' @export
 selectExchange <- function(data, exch = "N") { 
@@ -2146,7 +2024,7 @@ selectExchange <- function(data, exch = "N") {
     if (!("DT" %in% colnames(data))) {
       stop("Data.table neeeds DT column.")
     }
-    return(data[EX %in% exch])
+    return(data[EX %chin% exch])
   }
 }
 
@@ -2235,14 +2113,14 @@ selectExchange <- function(data, exch = "N") {
 #' Brownlees, C.T. and Gallo, G.M. (2006). Financial econometric analysis at ultra-high frequency: Data handling concerns. \emph{Computational Statistics & Data Analysis}, 51, 2232-2245.
 #' 
 #' @author Jonathan Cornelissen, Kris Boudt, Onno Kleen, and Emil Sjoerup
-#' @importFrom data.table fread
+#' @importFrom data.table fread %chin%
 #' @importFrom utils unzip
 #' @keywords cleaning
 #' @export
 tradesCleanup <- function(dataSource = NULL, dataDestination = NULL, exchanges = "auto", tDataRaw = NULL, report = TRUE, selection = "median",
                           validConds = c('', '@', 'E', '@E', 'F', 'FI', '@F', '@FI', 'I', '@I'), marketOpen = "09:30:00", 
                           marketClose = "16:00:00", printExchange = TRUE, saveAsXTS = FALSE, tz = NULL) {
-  .SD <- CORR <- SIZE <- SYMBOL <- PRICE <- EX <- COND <- DT <- DATE <- TIME_M <- NULL
+  .SD <- CORR <- SIZE <- SYMBOL <- PRICE <- EX <- DT <- DATE <- TIME_M <- SYM_SUFFIX<- NULL
   
   if (is.null(tDataRaw)) {
 
@@ -2269,13 +2147,14 @@ tradesCleanup <- function(dataSource = NULL, dataDestination = NULL, exchanges =
       if(inherits(readdata, "try-error")){
         stop(paste("Error encountered while opening data, error message is:",readdata))
       }
+      if(is.null(tz)) tz <- "UTC"
       if(colnames(readdata)[1] == "index"){ # The data was saved from an xts object
         readdata <- try(readdata[, DT := as.POSIXct(index, tz = tz, format = "%Y-%m-%dT%H:%M:%OS")])
       } else if ("DT" %in% colnames(readdata)){
         readdata <- try(readdata[, DT := as.POSIXct(DT, tz = tz, format = "%Y-%m-%dT%H:%M:%OS")])
       } else {
-        readdata <- try(readdata[, `:=`(DT = as.POSIXct(paste(DATE, TIME_M), tz = "UTC", format = "%Y%m%d %H:%M:%OS"),
-                                      DATE = NULL, TIME_M = NULL, SYM_SUFFIX = NULL)], silent = TRUE)
+        readdata <- try(readdata[, `:=`(DT = as.POSIXct(paste(DATE, TIME_M), tz = tz, format = "%Y%m%d %H:%M:%OS"),
+                                      DATE = NULL, TIME_M = NULL)], silent = TRUE)
       }
       
       if(inherits(readdata, "try-error")){
@@ -2303,16 +2182,20 @@ tradesCleanup <- function(dataSource = NULL, dataDestination = NULL, exchanges =
   
   if (!is.null(tDataRaw)) {
     
+    tDataRaw <- checkColumnNames(tDataRaw)
     nm <- toupper(colnames(tDataRaw))
+    
+    checktData(tDataRaw)
     if(!"DT" %in% nm && c("DATE", "TIME_M") %in% nm){
-      tDataRaw[, `:=`(DT = as.POSIXct(paste(DATE, TIME_M), tz = "UTC", format = "%Y%m%d %H:%M:%OS"),
-                      DATE = NULL, TIME_M = NULL, SYM_SUFFIX = NULL)]
+      if(is.null(tz)) tz <- "UTC"
+      tDataRaw[, `:=`(DT = as.POSIXct(paste(DATE, TIME_M), tz = tz, format = "%Y%m%d %H:%M:%OS"),
+                      DATE = NULL, TIME_M = NULL)]
+    }
+    if("SYM_SUFFIX" %in% nm){
+      tDataRaw[, `:=`(SYMBOL = fifelse(SYM_SUFFIX == "" | is.na(SYM_SUFFIX), yes = SYMBOL, no = paste0(SYMBOL, "_", SYM_SUFFIX)), SYM_SUFFIX = NULL)]
     }
     
     
-    
-    tDataRaw <- checkColumnNames(tDataRaw)
-    checktData(tDataRaw)
     
     inputWasXts <- FALSE
     if (!is.data.table(tDataRaw)) {
@@ -2365,8 +2248,8 @@ tradesCleanup <- function(dataSource = NULL, dataDestination = NULL, exchanges =
     tDataRaw <- exchangeHoursOnly(tDataRaw, marketOpen = marketOpen, marketClose = marketClose, tz = tz)
     REPORT[3] <- dim(tDataRaw)[1]
     if("EX" %in% nm){
-      if(exchanges != "auto"){
-        tDataRaw <- tDataRaw[EX %in% exchanges]
+      if(all(exchanges != "auto")){
+        tDataRaw <- tDataRaw[EX %chin% exchanges]
       } else if (exchanges == "auto"){
         tDataRaw <- tDataRaw[, autoSelectExchangeTrades(.SD, printExchange = printExchange), .SDcols = nm,by = list(SYMBOL, DATE = as.Date(DT, tz = tz))][, nm, with = FALSE]
       }
@@ -2424,6 +2307,7 @@ tradesCleanup <- function(dataSource = NULL, dataDestination = NULL, exchanges =
 #' \code{from}, \code{to}, \code{dataSource}, \code{dataDestination} will be ignored (only advisable for small chunks of data).
 #' @param lagQuotes numeric, number of seconds the quotes are registered faster than
 #' the trades (should be round and positive). Default is 0. For older datasets, i.e. before 2010, it may be a good idea to set this to, e.g., 2 (see, Vergote, 2005).
+#' @param nSpreads numeric of length 1 denotes how far above the offer and below bid we allow outliers to be. Trades are filtered out if they are MORE THAN nSpread * spread above (below) the offer (bid)
 #' @param BFM a logical determining whether to conduct "Backwards - Forwards matching" of trades and quotes.
 #' The algorithm tries to match trades that fall outside the bid - ask and first tries to match a small window forwards and if this fails, it tries to match backwards in a bigger window.
 #' The small window is a tolerance for inaccuracies in the timestamps of bids and asks. The backwards window allow for matching of late reported trades, i.e. block trades.
@@ -2461,7 +2345,7 @@ tradesCleanup <- function(dataSource = NULL, dataDestination = NULL, exchanges =
 #' # via the "tradeDataSource", "quoteDataSource", and "dataDestination" arguments
 #' @keywords cleaning
 #' @export
-tradesCleanupUsingQuotes <- function(tradeDataSource = NULL, quoteDataSource = NULL, dataDestination = NULL, tData = NULL, qData = NULL, lagQuotes = 0,
+tradesCleanupUsingQuotes <- function(tradeDataSource = NULL, quoteDataSource = NULL, dataDestination = NULL, tData = NULL, qData = NULL, lagQuotes = 0, nSpreads = 1, 
                                      BFM = FALSE, backwardsWindow = 3600, forwardsWindow = 0.5, plot = FALSE) {
   
   if (is.null(dataDestination) && !is.null(tradeDataSource)) {
@@ -2470,11 +2354,8 @@ tradesCleanupUsingQuotes <- function(tradeDataSource = NULL, quoteDataSource = N
   }
   
   if ((!is.null(tData)) & (!is.null(qData))) {
-    tData <- checkColumnNames(tData)
-    qData <- checkColumnNames(qData)
-    
     #1 cleaning procedure that needs cleaned trades and quotes
-    tData <- rmTradeOutliersUsingQuotes(tData, qData, lagQuotes = lagQuotes, BFM = BFM, backwardsWindow = backwardsWindow, forwardsWindow = forwardsWindow, plot = plot, onlyTQ = TRUE)
+    tData <- rmTradeOutliersUsingQuotes(tData, qData, lagQuotes = lagQuotes, nSpreads = nSpreads, BFM = BFM, backwardsWindow = backwardsWindow, forwardsWindow = forwardsWindow, plot = plot, onlyTQ = TRUE)
     return(tData)
   } else {
     
@@ -2520,7 +2401,7 @@ tradesCleanupUsingQuotes <- function(tradeDataSource = NULL, quoteDataSource = N
       
       tData <- try(readRDS(tradeFile))
       qData <- try(readRDS(quoteFile))
-      saveRDS(rmTradeOutliersUsingQuotes(tData, qData, lagQuotes = lagQuotes, BFM = BFM,
+      saveRDS(rmTradeOutliersUsingQuotes(tData, qData, lagQuotes = lagQuotes, nSpreads = nSpreads, BFM = BFM,
                                          backwardsWindow = backwardsWindow, forwardsWindow = forwardsWindow, plot = FALSE, onlyTQ = TRUE), 
               file = paste0(dataDestination, "/", gsub(".rds", "tradescleanedbyquotes.rds", basename(tradeFile))))
       
@@ -2593,8 +2474,8 @@ refreshTime <- function (pData, sort = FALSE, criterion = "squared duration") {
     if(any(as.logical(lapply(pData, function(x) length(unique(floor(as.numeric(x$DT)/ 86400))) > 1)))){
       stop("All the series in pData must contain data for a single day")
     }
-    if(!all(sapply(pData, function(x) c("DT", "PRICE") %in% colnames(x)))){
-      stop("DT and PRICE must be present in the data")
+    if(!all(sapply(pData, function(x) any(colnames(x) == "DT") && ncol(x) == 2))){
+      stop("DT must be present in all the data.tables in the input, and they should have two columns")
     }
   }
   if((sort && is.null(names(pData)))){
@@ -2636,7 +2517,7 @@ refreshTime <- function (pData, sort = FALSE, criterion = "squared duration") {
     }
     
     
-    temp <- refreshTimeMathing(coredata(temp), index(temp))
+    temp <- refreshTimeMatching(coredata(temp), index(temp))
     temp <- xts(temp[[1]], order.by = as.POSIXct(temp[[2]], tz = tz_, origin = as.POSIXct("1970-01-01", tz = tz_)))
     names(temp) <- nameVec # Set names 
     return(temp)
@@ -2667,25 +2548,44 @@ refreshTime <- function (pData, sort = FALSE, criterion = "squared duration") {
     } else {
       vec <- 2:(length(pData) + 1)
     }
-    
     names <- names(pData)
-    pData <- lapply(pData, copy)
     
-    for (i in 1:length(pData)) {
-      pData[[i]][,DT := as.numeric(DT, tz = tz)]
-      setkey(pData[[i]], "DT")
+    ## Check if all the column names are the same, e.g. all data.tables in the list
+    ## has colnames c("DT", "PRICE") then when we merge, we will get a single column
+    ## data.table - which we can't have! We just append a character.
+    if(length(unique(unlist(lapply(pData, names)))) == 2){ 
       
-      # if(flag)  setnames(pData[[i]],  c("DT", paste0(colnames(pData[[i]])[-1] , i)))
+      pData <- lapply(pData, copy) #unfortunately we need to copy all the data.tables here
+      for (i in 1:length(pData)) {
+        setnames(pData[[i]], new = c("DT", paste(names(pData[[i]])[2], i))) 
+      }
     }
-    # mergeOverload <- function(x,y) merge.data.table(x, y, all = TRUE, on = "DT")
     
-    # pData <- Reduce(mergeOverload, pData)
-    
+    # # May not be needed
+    # # 
+    # for (i in 1:length(pData)) {
+    #   pData[[i]][,DT := as.numeric(DT, tz = tz)]
+    #   # set(pData[[i]], j = "DT",  value= as.numeric(pData[[i]]$DT, tz = tz))
+    #   setkey(pData[[i]], "DT")
+    # 
+    #   # if(flag)  setnames(pData[[i]],  c("DT", paste0(colnames(pData[[i]])[-1] , i)))
+    # }
+    # # # mergeOverload <- function(x,y) merge.data.table(x, y, all = TRUE, on = "DT")
+    # # 
+    # # # pData <- Reduce(mergeOverload, pData)
+    # # 
     pData <- Reduce(function(x,y) merge.data.table(x, y, all = TRUE, on = "DT"), pData)
     
-    pData <- refreshTimeMathing(as.matrix(pData[,-"DT"]), pData$DT)
+    # For if the copying is needed
+    # pData <- refreshTimeMatching(as.matrix(pData[,-"DT"]), pData$DT)
+    
+    pData <- refreshTimeMatching(as.matrix(pData[,-"DT"]), as.numeric(pData$DT, tz = tz))
     pData <- data.table(pData[[2]], pData[[1]])
-    colnames(pData) <- c("DT", names)
+    if(is.null(names)){
+      setnames(pData, new = c("DT", paste0("V", 1:(ncol(pData)-1))))
+    } else {
+      setnames(pData, new =  c("DT", names))
+    }
     pData[, DT := as.POSIXct(DT, origin = as.POSIXct("1970-01-01", tz = tz), tz = tz)]
     if(sort) setcolorder(pData, c(1, vec))
     
@@ -2943,6 +2843,14 @@ makeOHLCV <- function(pData, alignBy = "minutes", alignPeriod = 5, tz = NULL){
   }
 }
 
+#' DEPRECATED 
+#' use \code{\link{spreadPrices}}
+#' @param data DEPRECATED
+#' @export
+makeRMFormat <- function(data){
+  .Deprecated(new = "makeRMFormat has been renamed to spreadPrices")
+  return(spreadPrices(data))
+}
 
 
 
@@ -2951,14 +2859,15 @@ makeOHLCV <- function(pData, alignBy = "minutes", alignPeriod = 5, tz = NULL){
 #' 
 #' Convenience function to split data from one \code{xts} or \code{data.table} 
 #' with at least \code{"DT"}, \code{"SYMBOL"}, and \code{"PRICE"} columns to a format 
-#' that can be used in the functions for calculation of realized measures.
+#' that can be used in the functions for calculation of realized measures. 
+#' This is the opposite of \code{\link{gatherPrices}}.
 #' 
 #' @param data An \code{xts} or a \code{data.table} object with at least \code{"DT"}, 
 #' \code{"SYMBOL"}, and \code{"PRICE"} columns. This data should already be cleaned.
 #' 
 #' @return An \code{xts} or a \code{data.table} object with columns \code{"DT"} and 
 #' a column named after each unique entrance in the \code{"SYMBOL"} column of the input. 
-#' These columns contain the price of the associated symbol. 
+#' These columns contain the price of the associated symbol. We drop all other columns, e.g. \code{SIZE}. 
 #' 
 #' @examples
 #' \dontrun{
@@ -2969,20 +2878,21 @@ makeOHLCV <- function(pData, alignBy = "minutes", alignPeriod = 5, tz = NULL){
 #' 
 #' dat <- rbind(data1, data2)
 #' setkey(dat, "DT")
-#' dat <- makeRMFormat(dat)
+#' dat <- spreadPrices(dat)
 #' 
 #' rCov(dat, alignBy = 'minutes', alignPeriod = 5, makeReturns = TRUE, cor = TRUE) 
 #' }
+#' @seealso \code{\link{gatherPrices}}
 #' @author Emil Sjoerup.
 #' @importFrom data.table merge.data.table setkey
 #' @importFrom xts is.xts
 #' @export
-makeRMFormat <- function(data){
+spreadPrices <- function(data){
   SYMBOL <- PRICE <- DT <- NULL
   if(any(!(c("SYMBOL", "PRICE") %in% colnames(data)))){
     stop(paste("Could not find column(s)", 
-               c("SYMBOL", "PRICE")[!(c("SYMBOL", "PRICE") %in% colnames(data))]), 
-         "these columns must be present")
+               paste(c("SYMBOL", "PRICE")[!(c("SYMBOL", "PRICE") %in% colnames(data))], collapse = ", ")), 
+         "in data, these columns must be present")
   }
   inputWasXts <- FALSE
   if (!is.data.table(data)) {
@@ -3001,7 +2911,7 @@ makeRMFormat <- function(data){
   splitted <- split(data[,list(DT, PRICE, SYMBOL)], by = 'SYMBOL')
   
   collected <- Reduce(function(x,y) merge.data.table(x,y, by = "DT", all = TRUE), lapply(splitted, function(x){
-    name <- x[1, SYMBOL]
+    name <- as.character(x[1, SYMBOL])
     x <- x[, list(DT,PRICE)]
     setnames(x, old = "PRICE", new = name)
     return(x)
@@ -3018,3 +2928,61 @@ makeRMFormat <- function(data){
   
 }
 
+
+#' Make TAQ format
+#' 
+#' Convenience function to gather data from one \code{xts} or \code{data.table} 
+#' with at least \code{"DT"}, and d columns containing price data to a \code{"DT"}, \code{"SYMBOL"}, and \code{"PRICE"}
+#' column. This function the opposite of \code{\link{spreadPrices}}.
+#' 
+#' @param data An \code{xts} or a \code{data.table} object with at least \code{"DT"} and d columns with price data with their names corresponding to the respective symbols.
+#' 
+#' @return a \code{data.table} with columns \code{DT}, \code{SYMBOL}, and \code{PRICE}
+#' 
+#' @examples
+#' \dontrun{
+#' library(data.table)
+#' data1 <- copy(sampleTData)[,  `:=`(PRICE = PRICE * runif(.N, min = 0.99, max = 1.01),
+#'                                                DT = DT + runif(.N, 0.01, 0.02))]
+#' data2 <- copy(sampleTData)[, SYMBOL := 'XYZ']
+#' dat1 <- rbind(data1[, list(DT, SYMBOL, PRICE)], data2[, list(DT, SYMBOL, PRICE)])
+#' setkeyv(dat1, c("DT", "SYMBOL"))
+#' dat1
+#' dat <- spreadPrices(dat1) # Easy to use for realized measures
+#' dat
+#' dat <- gatherPrices(dat)
+#' dat
+#' all.equal(dat1, dat) # We have changed to RM format and back.
+#' }
+#' @seealso \code{\link{spreadPrices}}
+#' @author Emil Sjoerup
+#' @importFrom data.table melt
+#' @export
+gatherPrices <- function(data){
+  
+  inputWasXts <- FALSE
+  if (!is.data.table(data)) {
+    if (is.xts(data)) {
+      data <- as.data.table(data)
+      data <- setnames(data , old = "index", new = "DT")
+      inputWasXts <- TRUE
+    } else {
+      stop("Input has to be data.table or xts.")
+    }
+  } else {
+    if (!("DT" %in% colnames(data))) {
+      stop("Data.table neeeds DT column.")
+    }
+  }
+  data <- melt(data, 1, na.rm = TRUE, variable.factor = FALSE)
+  setnames(data, old = c("variable", "value"), new = c("SYMBOL", "PRICE"))
+  
+  if (inputWasXts) {
+    data <- as.xts(data)
+    storage.mode(data) <- 'numeric'
+    return(data)
+  } else {
+    setkeyv(data, c("DT", "SYMBOL"))
+    return(data[])
+  }
+}

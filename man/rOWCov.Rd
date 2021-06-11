@@ -13,7 +13,8 @@ rOWCov(
   seasadjR = NULL,
   wFunction = "HR",
   alphaMCD = 0.75,
-  alpha = 0.001
+  alpha = 0.001,
+  ...
 )
 }
 \arguments{
@@ -24,7 +25,7 @@ return series over period \eqn{t}, with \eqn{M} observations during \eqn{t}.}
 \code{FALSE} by default.}
 
 \item{alignBy}{character, indicating the time scale in which \code{alignPeriod} is expressed. 
-Possible values are: \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}.}
+Possible values are: \code{"ticks"}, \code{"secs"}, \code{"seconds"}, \code{"mins"}, \code{"minutes"}, \code{"hours"}}
 
 \item{alignPeriod}{positive numeric, indicating the number of periods to aggregate over. For example, to aggregate
 based on a 5-minute frequency, set \code{alignPeriod = 5} and \code{alignBy = "minutes"}.}
@@ -49,6 +50,8 @@ the default is 0.75. See Boudt et al. (2008) or the \code{covMcd} function in th
 \item{alpha}{is a parameter between 0 and 0.5,
 that determines the rejection threshold value
 (see Boudt et al. (2008) for details).}
+
+\item{...}{used internally, do not change.}
 }
 \value{
 an \eqn{N \times N} matrix
@@ -97,10 +100,12 @@ rowc <- rOWCov(rData = as.xts(sampleOneMinuteData[as.Date(DT) == "2001-08-04",])
                makeReturns = TRUE)
 rowc
 }
-
 }
 \references{
 Boudt, K., Croux, C., and Laurent, S. (2008). Outlyingness weighted covariation. \emph{Journal of Financial Econometrics}, 9, 657–684.
+}
+\seealso{
+\code{\link{ICov}} for a list of implemented estimators of the integrated covariance.
 }
 \author{
 Jonathan Cornelissen, Kris Boudt, and Emil Sjoerup.
