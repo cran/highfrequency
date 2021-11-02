@@ -143,9 +143,9 @@ AJjumpTest <- function(pData, p = 4 , k = 2, alignBy = NULL, alignPeriod = NULL,
     
   } else {
     if(is.data.table(pData)){
-      pData <- fastTickAgregation_DATA.TABLE(pData, alignBy = "seconds", alignPeriod = 1)
+      pData <- fastTickAggregation_DATA.TABLE(pData, alignBy = "seconds", alignPeriod = 1)
     } else {
-      pData <- fastTickAgregation(pData, alignBy = "seconds", alignPeriod = 1)
+      pData <- fastTickAggregation(pData, alignBy = "seconds", alignPeriod = 1)
     }
   }
 
@@ -291,11 +291,11 @@ BNSjumpTest <- function (rData, IVestimator = "BV", IQestimator = "TP", type = "
   } else if (is.data.table(rData)){
     DATE <- .N <- DT <- NULL
     if(!is.null(alignBy) && !is.null(alignPeriod) && makeReturns) {
-      rData <- fastTickAgregation_DATA.TABLE(rData, alignBy = alignBy, alignPeriod = alignPeriod)
+      rData <- fastTickAggregation_DATA.TABLE(rData, alignBy = alignBy, alignPeriod = alignPeriod)
     }
     
     if(!is.null(alignBy) && !is.null(alignPeriod) && !makeReturns) {
-      rData <- fastTickAgregation_DATA.TABLE_RETURNS(rData, alignBy = alignBy, alignPeriod = alignPeriod)
+      rData <- fastTickAggregation_DATA.TABLE_RETURNS(rData, alignBy = alignBy, alignPeriod = alignPeriod)
     }
     
     setkey(rData, "DT")
@@ -315,10 +315,10 @@ BNSjumpTest <- function (rData, IVestimator = "BV", IQestimator = "TP", type = "
     
   } else {
     if ((!is.null(alignBy)) && (!is.null(alignPeriod)) && makeReturns) {
-      rData <- fastTickAgregation(rData, alignBy = alignBy, alignPeriod = alignPeriod)
+      rData <- fastTickAggregation(rData, alignBy = alignBy, alignPeriod = alignPeriod)
     }
     if ((!is.null(alignBy)) && (!is.null(alignPeriod)) && !makeReturns) {
-      rData <- fastTickAgregation_RETURNS(rData, alignBy = alignBy, alignPeriod = alignPeriod)
+      rData <- fastTickAggregation_RETURNS(rData, alignBy = alignBy, alignPeriod = alignPeriod)
     }
     if (makeReturns) {
       rData <- makeReturns(rData)
@@ -462,7 +462,7 @@ JOjumpTest <- function(pData, power = 4, alignBy = NULL, alignPeriod = NULL, alp
   } else if (is.data.table(pData)){
     DATE <- .N <- DT <- NULL
     if((!is.null(alignBy)) && (!is.null(alignPeriod))) {
-      pData <- fastTickAgregation_DATA.TABLE(pData, alignBy = alignBy, alignPeriod = alignPeriod)
+      pData <- fastTickAggregation_DATA.TABLE(pData, alignBy = alignBy, alignPeriod = alignPeriod)
     }
     setkey(pData, "DT")
     dates <- pData[, list(end = .N), by = list(DATE = as.Date(DT))][, `:=`(end = cumsum(end), DATE = as.character(DATE))][, start := shift(end, fill = 0) + 1]
@@ -480,7 +480,7 @@ JOjumpTest <- function(pData, power = 4, alignBy = NULL, alignPeriod = NULL, alp
     
   } else {
     if ((!is.null(alignBy)) && (!is.null(alignPeriod))) {
-      pData <- fastTickAgregation(pData, alignBy = alignBy, alignPeriod = alignPeriod)
+      pData <- fastTickAggregation(pData, alignBy = alignBy, alignPeriod = alignPeriod)
     }
     
     R  <- as.zoo(simre(pData))
@@ -693,23 +693,34 @@ intradayJumpTest <- function(pData, volEstimator = "RM", driftEstimator = "none"
     drift <- 0
   }
   
-  vol$spot <- sqrt((vol$spot^2)/(op$lookBackPeriod-2))
+  if (volEstimator == "RM") { # we only define "op" if "volEstimator == "RM", see earlier in this function. 
+    vol$spot <- sqrt((vol$spot^2)/(op$lookBackPeriod-2))
+  }
   
   tests <- (returns$RETURN - drift)/(vol$spot)
   
   tests[is.infinite(tests)] <- NA
-  # Calculating the critical value of the test.
-  const <- 0.7978846 # = sqrt(2/pi)
   
+  ## Calculating the critical value of the test.
   
-  
-
   if(is.null(n)){n <- NROW(pData)}
   
-  Cn <- sqrt(2 * log(n))/const - (log(pi) + log( log(n) ))/(2 * const*sqrt((2 * log(n))))
-  Sn <- 1/sqrt(const * 2 * log(n))
-  betastar <- -log(-log(1-alpha))
+  # const <- 0.7978846 # = sqrt(2/pi)
+  # Cn <- sqrt(2 * log(n))/const - (log(pi) + log( log(n) ))/(2 * const*sqrt((2 * log(n))))
+  # Sn <- 1/sqrt(const * 2 * log(n))
+  ## Lee-Mykland (Thm 1) proposes a normally distributed test statistic with mean = 0 and variance = 1/c^2 under the null. 
+  ## The constant comes from the fact that their spot volatility is calculated using the bipower variation (Barndorff-Nielsen and Shephard, 2004). 
+  ## The definition in Lee-Mykland (Eq. 8) lacks the constant in the definition. 
+  ## Our generalized test statistic L is standard normally distributed N(0,1). We want it to work for different spotvol estimators. 
+  ## Therefore we can remove the constant from the threshold. 
+  Cn <- sqrt(2 * log(n)) - (log(pi) + log(log(n))) / (2 * sqrt(2 * log(n)))
+  Sn <- 1 / sqrt(2 * log(n))
+  # normalized: threshold if we rescale L with Cn and Sn (like in Lee & Mykland, Eq. 12)
+  betastar <- -log(-log(1-alpha)) # # betastar # for alpha = 0.01 4.600149 (example on Lee & Mykland, 2008, pp. 2543)
+  # raw: threshold if we do not rescale the L statistic with Cn and Sn, but we rescale the threshold directly (Sn and Cn to other side of the equation)
   criticalValue <- Cn + Sn * betastar
+  # for n = 78, alpha = 0.01, criticalValue = 4.067058 
+  
   
   if (dataWasXts) {
     pData <- as.xts(pData[ , list(DT, PRICE)], tz = tz)
