@@ -1,11 +1,11 @@
-681c227f93f54f5bb07eaa75dea80b86 *DESCRIPTION
-3f354e173fdadc8c3911b588c0018a95 *NAMESPACE
-7f33c9ffd92df252295d39599d91ed4a *NEWS.md
+1e95c20668537b6c185d28e233bd2f6a *DESCRIPTION
+df00720edccf1658e07a9cf8b7072ae8 *NAMESPACE
+ffb4a257dfd966680fbaa32310c43f7c *NEWS.md
 b0e864f980e149a4438f0eb904429492 *R/HARmodel.R
 aec57e63e38543375375ea8949f924d0 *R/HEAVYmodel.R
 a969556fb400aa7aa5e791ffff168d1f *R/RcppExports.R
 76a04c184e57b33c65c75753f20ec40a *R/data.R
-f1caffe45066c9ffb469fa58b41da921 *R/dataHandling.R
+25912eb9c944b98d648976d32063cb01 *R/dataHandling.R
 f50ae2e4ab90a399e871a2e5d7b563d7 *R/driftBursts.R
 b8760c9f0b7c92ea523e1fb48f87eeda *R/getDataFromAlphaVantage.R
 d11c5336d1ecdfcceef91e08ddcf17b7 *R/highfrequency.R
@@ -21,7 +21,7 @@ afa98229b31eebb9e5f7132fcb64bc07 *R/leadLag.R
 33cbb439992977b244f7f293dea319aa *R/liquidityMeasures.R
 03350de1e1a79b2759c92ae29032e584 *R/plotTQData.R
 08f1cd7b1caf36eaa307c845c4b8948a *R/rcpp_dynlib_call.R
-18c2847fd5d953e0db8d7a9411270b35 *R/realizedMeasures.R
+f4186ed289a45554fa54ce19ddb7a527 *R/realizedMeasures.R
 0b1a78ed2fea9f8939599577cc303f58 *R/realizedMeasuresInference.R
 048335572fb33177f671e8770d963544 *R/spotVolAndDrift.R
 8801c2362ea6b8d9d4fc805c0fec64a3 *R/sysdata.rda
@@ -88,7 +88,7 @@ c464979fe2c03dec21cc296fdc70f216 *man/plotTQData.Rd
 821a760f85fbd5b18f9c6f178ed91b85 *man/print.HARmodel.Rd
 290d2093f93beee9e35e6c57e4d75e53 *man/quotesCleanup.Rd
 3f9fdd4d7c34fb8c73cf01e285be0564 *man/rAVGCov.Rd
-9dfc552dcc2f7a559694df76ce25a7cc *man/rBACov.Rd
+4ea539d3c29220ecb5c58e700d88695f *man/rBACov.Rd
 deea35a26fdf9571a4d2448865e0c28c *man/rBPCov.Rd
 728dad088273bf76b75f560a83297ee0 *man/rBeta.Rd
 64489d3e8257c4176d30f8102c778e9e *man/rCholCov.Rd
