@@ -1,6 +1,6 @@
-e9f5f3f8d09200ea6b968ead16ec6518 *DESCRIPTION
+8f0e7a131de967b8ef03b0d342cce872 *DESCRIPTION
 df00720edccf1658e07a9cf8b7072ae8 *NAMESPACE
-1bccebc3ccd82addf14d85fb2cad7e51 *NEWS.md
+8716af3b4593d6d3aefb85e88cc97719 *NEWS.md
 b0e864f980e149a4438f0eb904429492 *R/HARmodel.R
 aec57e63e38543375375ea8949f924d0 *R/HEAVYmodel.R
 a969556fb400aa7aa5e791ffff168d1f *R/RcppExports.R
@@ -18,10 +18,10 @@ c3e8b871ee920eb8aa033402556976cc *R/internalHEAVY.R
 b379e284f979f6b4a699fb4b2cb14a7d *R/internalSpotVolAndDrift.R
 a76318736dda7f46eabf965130ea95ca *R/jumpTests.R
 293b71b1c93880810bb76e20824e1c75 *R/leadLag.R
-33cbb439992977b244f7f293dea319aa *R/liquidityMeasures.R
+d982f2b771444537f56dbe5605f04055 *R/liquidityMeasures.R
 03350de1e1a79b2759c92ae29032e584 *R/plotTQData.R
 08f1cd7b1caf36eaa307c845c4b8948a *R/rcpp_dynlib_call.R
-f4186ed289a45554fa54ce19ddb7a527 *R/realizedMeasures.R
+6f6ce1eddd57c85e88aa4bdaf55e78c7 *R/realizedMeasures.R
 0b1a78ed2fea9f8939599577cc303f58 *R/realizedMeasuresInference.R
 79396df8c5590b5fc1a536675f338922 *R/spotVolAndDrift.R
 8801c2362ea6b8d9d4fc805c0fec64a3 *R/sysdata.rda
@@ -42,6 +42,7 @@ b3c77f52e93baa3978c1a7f32d6df84c *man/HARmodel.Rd
 e197518c7d374ff654d72b54a8f736d2 *man/IVar.Rd
 4d5de00b6e5f50071876dbd8a7bb476c *man/IVinference.Rd
 cb259fa7c44e5c23da4fafee4c71c392 *man/JOjumpTest.Rd
+b44cd9bd71881aa1834393b32eb30904 *man/MDtest.Rd
 17dab0206d5a7b1109bdc977782c0389 *man/RBPCov_bi.Rd
 340e55d2f4a806667f46f8a6257b0b33 *man/RV.Rd
 5cf056d7be59c74d825a16b270f6286b *man/ReMeDI.Rd
@@ -60,9 +61,9 @@ e7943ba78cdaff9d940146b68ed00af7 *man/exchangeHoursOnly.Rd
 f1a80ce15c6fa9e390d60e32b037a2fe *man/gatherPrices.Rd
 49e96aa2d1b5d17c19322936fb5f8e85 *man/getAlphaVantageData.Rd
 cdd50430ccf6c746c0117282247e0333 *man/getCriticalValues.Rd
-05b8bec28175ef45e1cb34917e55ac08 *man/getLiquidityMeasures.Rd
+e6021047dba3c1b7993ade15c0374e20 *man/getLiquidityMeasures.Rd
 96ed930cc0c709922cfb2422a89e5233 *man/getTradeDirection.Rd
-e50040fd6481a2108e7561fb5bf0cdb7 *man/highfrequency-package.Rd
+f46cfe6ad920d551f2120b9fc7729d15 *man/highfrequency-package.Rd
 bb634ee60333a6ee29b5b977e2ec4de5 *man/intradayJumpTest.Rd
 707c11fd90b84dc1c1d0ee34efa92776 *man/knChooseReMeDI.Rd
 588f4672b73421bd4f887ed2bfe7cd98 *man/leadLag.Rd
@@ -91,7 +92,7 @@ c464979fe2c03dec21cc296fdc70f216 *man/plotTQData.Rd
 4ea539d3c29220ecb5c58e700d88695f *man/rBACov.Rd
 deea35a26fdf9571a4d2448865e0c28c *man/rBPCov.Rd
 728dad088273bf76b75f560a83297ee0 *man/rBeta.Rd
-64489d3e8257c4176d30f8102c778e9e *man/rCholCov.Rd
+ef74a4f097b697286e55a8fc798e55ce *man/rCholCov.Rd
 25372024e05027ac6d103421f91425f9 *man/rCov.Rd
 ce5cad8b368d9758793dd500b4128402 *man/rHYCov.Rd
 4c153cdaa0b10ccdf53a985c6f704f8b *man/rKernelCov.Rd
@@ -152,9 +153,9 @@ efd376b183a04202d96145e296cb3f80 *src/businessTimeSampling.cpp
 67b04bc1086581a5448f25132a6de19a *src/internals.cpp
 a019828777afaf5e056094ef4f1e1245 *src/internals.h
 6e4ea07a1bb619a504e5c49e598debcb *src/leadLag.cpp
-b800e05211513ac0a9200ca265cba612 *src/realizedMeasures.cpp
+724003d9a3d015fc39476dee9594c534 *src/realizedMeasures.cpp
 95292912253ce34b0edde85765e80f28 *tests/testthat.R
-d4f6dc295224e3b0d05572bf3431edde *tests/testthat/Rplots.pdf
+f16b01177f2d3875ad7c69371692b705 *tests/testthat/Rplots.pdf
 cee779b04c5880561b248787fb24fb41 *tests/testthat/test_internals_utilities.R
 2f84e6342168cbe379c57c5bc2b68cbc *tests/testthat/tests_data_handling.R
 523cb4892b2de7abed2a68c81d6aab06 *tests/testthat/tests_driftBursts.R
