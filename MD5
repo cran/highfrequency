@@ -1,6 +1,6 @@
-8f0e7a131de967b8ef03b0d342cce872 *DESCRIPTION
+670ed905489371b977e79020c26523d7 *DESCRIPTION
 df00720edccf1658e07a9cf8b7072ae8 *NAMESPACE
-8716af3b4593d6d3aefb85e88cc97719 *NEWS.md
+cddce8001cdfc8445df502716c2746cd *NEWS.md
 b0e864f980e149a4438f0eb904429492 *R/HARmodel.R
 aec57e63e38543375375ea8949f924d0 *R/HEAVYmodel.R
 a969556fb400aa7aa5e791ffff168d1f *R/RcppExports.R
@@ -33,6 +33,7 @@ f7fd415c7e3c7ae4677b093bacb3ff11 *data/sampleQDataRaw.rda
 d50fd2d34ef224ece9129949f65e42b3 *data/sampleTData.rda
 a3b4e165e70fabdbb8e8c2983d01bd15 *data/sampleTDataEurope.rda
 475cb8949e731bc0e27b7237649034b0 *data/sampleTDataRaw.rda
+99e994e0203e0f96cd0fbc4fef56f60f *inst/CITATION
 cdd37d9d907decd4228cf326ded1b7c3 *man/AJjumpTest.Rd
 477bf152809d1c3ed920ab865e01c4da *man/BNSjumpTest.Rd
 61616e3c5e6e34845e23904725bb63fb *man/Bj.Rd
